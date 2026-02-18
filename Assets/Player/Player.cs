@@ -4,10 +4,10 @@ using UnityEngine.InputSystem;
 public class Player : MonoBehaviour
 {
     [SerializeField]private Rigidbody rb;
-    [SerializeField]private Rigidbody rb2;
     public InputActionReference moveAction;
     public InputActionReference jumpAction;
     [SerializeField] private float speed = 5f;
+    private Vector2 moveInput;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -17,9 +17,14 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Vector2 moveInput = moveAction.action.ReadValue<Vector2>();
-        rb.linearVelocity = new Vector3(moveInput.x, rb.linearVelocity.y, moveInput.y) * speed;
+        moveInput = moveAction.action.ReadValue<Vector2>();
+        
 
+    }
+
+    void FixedUpdate()
+    {
+        rb.linearVelocity = new Vector3(moveInput.x, rb.linearVelocity.y, moveInput.y) * speed;
     }
     
 }
