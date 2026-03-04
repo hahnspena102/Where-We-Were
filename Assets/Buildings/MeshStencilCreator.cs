@@ -53,7 +53,7 @@ public class MeshStencilCreator : MonoBehaviour {
 
             foreach (var v in verts) {
                 normalizedVerts.Add(new Vector2(
-                    (v.x - offsetX) / imageWidth * aspect,
+                    (v.x - offsetX) / imageWidth,
                     (v.y - offsetY) / imageHeight
                 ));
             }
