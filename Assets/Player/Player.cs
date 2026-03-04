@@ -24,7 +24,7 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector3(moveInput.x, rb.linearVelocity.y, moveInput.y) * speed;
+        rb.linearVelocity = new Vector3(-moveInput.x, rb.linearVelocity.y, -moveInput.y) * speed;
     }
     
 }
