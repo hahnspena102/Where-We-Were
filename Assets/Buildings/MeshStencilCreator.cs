@@ -9,9 +9,6 @@ public class MeshStencilCreator : MonoBehaviour {
     public Sprite[] targets;
     // public MeshFilter meshFilter;
     public Transform outputContainer;
-    public int imageSize = 1024;
-    public int offsetX = 512;
-    public int offsetY = 0;
     public float threshold = 0.5f;
     public float depth = 0.05f;
     public string meshPrefix = "NPCStencil_";
@@ -25,6 +22,7 @@ public class MeshStencilCreator : MonoBehaviour {
  
     [Button]
     public void CreateMesh() {
+      
         float posIncrement = 1f;
         float sqrt = Mathf.Sqrt(targets.Length);
         int xLen = Mathf.CeilToInt(sqrt);
@@ -32,10 +30,16 @@ public class MeshStencilCreator : MonoBehaviour {
         int xCount = 0;
         int yCount = 0;
         foreach (Sprite target in targets) {
+            Rect r = target.rect;
+            int imageWidth  = (int)r.width;
+            int imageHeight = (int)r.height;
+            int offsetX = (int)r.x;
+            int offsetY = (int)r.y;
+
             Debug.Log("Creating Mesh for " + target.name);
             //get edge verts
-            Color[] pxs = target.texture.GetPixels(0, 0, imageSize, imageSize, 0);
-            SimpleSurfaceEdge sse = new SimpleSurfaceEdge(pxs, imageSize, imageSize, threshold);
+            Color[] pxs = target.texture.GetPixels(0, 0, imageWidth, imageHeight, 0);
+            SimpleSurfaceEdge sse = new SimpleSurfaceEdge(pxs, imageWidth, imageHeight, threshold);
             List<Vector2> verts = sse.GetOutsideEdgeVertices().ToList();
             Vector2 offset = new Vector2(offsetX, offsetY);
             // Use a smaller constrain threshold to preserve more edge detail
@@ -43,9 +47,15 @@ public class MeshStencilCreator : MonoBehaviour {
             verts = Utils2D.Constrain(verts.ToList(), constrainThreshold); //reduce to a reasonable size
             
             // Normalize vertices
+            
             List<Vector2> normalizedVerts = new List<Vector2>();
+            float aspect = (float)imageWidth / imageHeight;
+
             foreach (var v in verts) {
-                normalizedVerts.Add((v - offset) / (float)imageSize);
+                normalizedVerts.Add(new Vector2(
+                    (v.x - offsetX) / imageWidth * aspect,
+                    (v.y - offsetY) / imageHeight
+                ));
             }
             verts = normalizedVerts;
             Debug.Log($"Mesh '{target.name}': {verts.Count} vertices after constraint, threshold={threshold}, offset=({offsetX}, {offsetY})");
@@ -126,9 +136,9 @@ public class MeshStencilCreator : MonoBehaviour {
             //calc UVs
             Vector2[] frontUVs = new Vector2[meshVerts.Length];
             Vector2[] backUVs = new Vector2[meshVerts.Length];
-            Vector2 uvOffset = new Vector2(offsetX / (float)imageSize, offsetY / (float)imageSize);
+            Vector2 uvOffset = new Vector2(offsetX / (float)imageWidth, offsetY / (float)imageHeight);
             for (int i = 0; i < meshVerts.Length; i++) {
-                frontUVs[i] = (Vector2)meshVerts[i] + uvOffset;
+                 frontUVs[i] = new Vector2(meshVerts[i].x, meshVerts[i].y);
                 backUVs[i] = frontUVs[i];
             }
  
