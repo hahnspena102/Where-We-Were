@@ -1,16 +1,12 @@
 fileFormatVersion: 2
-guid: 05721a7b285e5c8488618ff1955872f1
+guid: 9e26b931fd1bb7747bbb71133c87005f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
     mipMapMode: 0
-<<<<<<< HEAD
     enableMipMap: 1
-=======
-    enableMipMap: 0
->>>>>>> b26fd7e0370d13686168c17b4c99f15a683d7c0d
     sRGBTexture: 1
     linearTexture: 0
     fadeOut: 0
@@ -25,11 +21,7 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
     flipGreenChannel: 0
-<<<<<<< HEAD
   isReadable: 0
-=======
-  isReadable: 1
->>>>>>> b26fd7e0370d13686168c17b4c99f15a683d7c0d
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -45,7 +37,6 @@ TextureImporter:
     filterMode: 1
     aniso: 1
     mipBias: 0
-<<<<<<< HEAD
     wrapU: 0
     wrapV: 0
     wrapW: 0
@@ -53,15 +44,6 @@ TextureImporter:
   lightmap: 0
   compressionQuality: 50
   spriteMode: 0
-=======
-    wrapU: 1
-    wrapV: 1
-    wrapW: 0
-  nPOTScale: 0
-  lightmap: 0
-  compressionQuality: 50
-  spriteMode: 1
->>>>>>> b26fd7e0370d13686168c17b4c99f15a683d7c0d
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -70,15 +52,9 @@ TextureImporter:
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
-<<<<<<< HEAD
   alphaIsTransparency: 0
   spriteTessellationDetail: -1
   textureType: 0
-=======
-  alphaIsTransparency: 1
-  spriteTessellationDetail: -1
-  textureType: 8
->>>>>>> b26fd7e0370d13686168c17b4c99f15a683d7c0d
   textureShape: 1
   singleChannelComponent: 0
   flipbookRows: 1
@@ -124,11 +100,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-<<<<<<< HEAD
     spriteID: 
-=======
-    spriteID: 5e97eb03825dee720800000000000000
->>>>>>> b26fd7e0370d13686168c17b4c99f15a683d7c0d
     internalID: 0
     vertices: []
     indices: 
