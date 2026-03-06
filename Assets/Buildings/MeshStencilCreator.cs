@@ -52,10 +52,12 @@ public class MeshStencilCreator : MonoBehaviour {
             float aspect = (float)imageWidth / imageHeight;
 
             foreach (var v in verts) {
-                normalizedVerts.Add(new Vector2(
-                    (v.x - offsetX) / imageWidth,
-                    (v.y - offsetY) / imageHeight
-                ));
+                float x = (v.x - offsetX) / imageWidth;
+                float y = (v.y - offsetY) / imageHeight;
+
+                x *= aspect;
+
+                normalizedVerts.Add(new Vector2(x, y));
             }
             verts = normalizedVerts;
             Debug.Log($"Mesh '{target.name}': {verts.Count} vertices after constraint, threshold={threshold}, offset=({offsetX}, {offsetY})");
@@ -138,7 +140,7 @@ public class MeshStencilCreator : MonoBehaviour {
             Vector2[] backUVs = new Vector2[meshVerts.Length];
             Vector2 uvOffset = new Vector2(offsetX / (float)imageWidth, offsetY / (float)imageHeight);
             for (int i = 0; i < meshVerts.Length; i++) {
-                 frontUVs[i] = new Vector2(meshVerts[i].x, meshVerts[i].y);
+                frontUVs[i] = new Vector2(meshVerts[i].x / aspect, meshVerts[i].y);
                 backUVs[i] = frontUVs[i];
             }
  
