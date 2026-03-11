@@ -182,6 +182,12 @@ public class MeshStencilCreator : MonoBehaviour {
             MeshFilter mf = child.AddComponent<MeshFilter>();
             MeshRenderer mr = child.AddComponent<MeshRenderer>();
             mf.sharedMesh = m;
+
+            BoxCollider bc = child.AddComponent<BoxCollider>();
+            bc.center = m.bounds.center;
+            bc.size = m.bounds.size;
+
+            bc.size = new Vector3(m.bounds.size.x, m.bounds.size.y, Mathf.Max(0.1f, m.bounds.size.z));
  
             string[] ass = AssetDatabase.FindAssets(baseName + "_spec" + " t:texture");
             if (ass.Length != 1) {
