@@ -6,16 +6,20 @@ public class Player : MonoBehaviour
     [SerializeField]private Rigidbody rb;
     public InputActionReference moveAction;
     public InputActionReference jumpAction;
+    public InputActionReference clickAction;
     [SerializeField] private float speed = 5f;
 
     [SerializeField] private Camera cam;
     [SerializeField] private Transform hoverProjector;
     [SerializeField] private float hoverOffset = 0.01f;
     private Vector2 moveInput;
+    private float holdTime;
+    private GameManager gameManager;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        gameManager = FindFirstObjectByType<GameManager>();
     }
 
     // Update is called once per frame
@@ -23,37 +27,29 @@ public class Player : MonoBehaviour
     {
         moveInput = moveAction.action.ReadValue<Vector2>();
 
-        Ray ray = cam.ScreenPointToRay(Mouse.current.position.ReadValue());
-
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero)
         {
-            // Check if surface is mostly facing upward
-            float upDot = Vector3.Dot(hit.normal, Vector3.up);
-            bool mostlyUp = upDot > 0.7f; // adjust threshold if needed
+            holdTime += Time.deltaTime;
 
-            // Check if within placement radius
-            float distance = Vector3.Distance(transform.position, hit.point);
-            bool withinRange = distance <= 64f;
-
-            if (mostlyUp && withinRange)
+            if (holdTime >= 1f)
             {
-                hoverProjector.gameObject.SetActive(true);
-
-                hoverProjector.position = hit.point + hit.normal * hoverOffset;
-                hoverProjector.rotation = Quaternion.LookRotation(hit.normal);
-            }
-            else
-            {
-                hoverProjector.gameObject.SetActive(false);
+                gameManager.PlayerHold();
             }
         }
         else
         {
-            hoverProjector.gameObject.SetActive(false);
+            holdTime = 0f;
         }
+
+
     }
     void FixedUpdate()
     {
+        if (gameManager.CurrentState == GameState.Answering)
+        {
+            rb.linearVelocity = Vector3.zero;
+            return;
+        }
         rb.linearVelocity = new Vector3(moveInput.x, rb.linearVelocity.y, moveInput.y) * speed;
     }
     
