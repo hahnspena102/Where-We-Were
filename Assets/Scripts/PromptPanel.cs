@@ -31,6 +31,20 @@ public class PromptPanel : MonoBehaviour
         StartCoroutine(PromptCoroutine(question));
     }
 
+    public void HidePrompt()
+    {
+        StartCoroutine(HidePromptCoroutine());
+    }
+
+    IEnumerator HidePromptCoroutine()
+    {
+        while(canvasGroup.alpha > 0)
+        {
+            canvasGroup.alpha -= Time.deltaTime / fadeDuration;
+            yield return null;
+        }
+    }
+
     IEnumerator PromptCoroutine(string question)
     {
         promptText.text = question;
