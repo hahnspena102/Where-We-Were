@@ -3,7 +3,10 @@ using System.Linq;
 using mattatz.Triangulation2DSystem;
 using NaughtyAttributes;
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
+
  
 public class MeshStencilCreator : MonoBehaviour {
     public Sprite[] targets;
@@ -189,6 +192,7 @@ public class MeshStencilCreator : MonoBehaviour {
 
             bc.size = new Vector3(m.bounds.size.x, m.bounds.size.y, Mathf.Max(0.1f, m.bounds.size.z));
  
+            #if UNITY_EDITOR
             string[] ass = AssetDatabase.FindAssets(baseName + "_spec" + " t:texture");
             if (ass.Length != 1) {
                 Debug.LogError("Spec map asset error: " + baseName);
@@ -214,6 +218,7 @@ public class MeshStencilCreator : MonoBehaviour {
             AssetDatabase.CreateAsset(m, meshPath + meshName + ".asset");
             AssetDatabase.CreateAsset(newFrontMat, materialPath + newFrontMat.name + ".mat");
             AssetDatabase.SaveAssets();
+            #endif
  
             Debug.Log("Finished creating Mesh for " + target.name);
         }
