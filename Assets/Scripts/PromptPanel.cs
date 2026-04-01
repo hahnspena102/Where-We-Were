@@ -64,8 +64,8 @@ public class PromptPanel : MonoBehaviour
         Vector2 startOffsetMin = panelRect.offsetMin;
         Vector2 startOffsetMax = panelRect.offsetMax;
 
-        Vector2 targetOffsetMin = new Vector2(40, 900);
-        Vector2 targetOffsetMax = new Vector2(-1200, -40);
+        Vector2 targetOffsetMin = new Vector2(80, 700);
+        Vector2 targetOffsetMax = new Vector2(-1000, -80);
 
         float t = 0f;
 
