@@ -7,7 +7,7 @@ public class Player : MonoBehaviour
     public InputActionReference moveAction;
     public InputActionReference jumpAction;
     public InputActionReference clickAction;
-    [SerializeField] private float speed = 5f;
+    [SerializeField] private float speed = 2f;
 
     [SerializeField] private Camera cam;
     [SerializeField] private Transform hoverProjector;

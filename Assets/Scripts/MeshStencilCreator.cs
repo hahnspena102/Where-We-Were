@@ -17,8 +17,7 @@ public class MeshStencilCreator : MonoBehaviour {
     public string meshPrefix = "NPCStencil_";
     public string meshPath = "Assets/Models/NPC/";
  
-    public Material faceMaterialToCopy;
-    public Material sideMaterial;
+    public BuildingMaterial buildingMaterial;
     public float edgeUVWidth = 208f / 2048f;
     public string materialPrefix = "CardboardFace_";
     public string materialPath = "Assets/Materials/Cardboard/NPC/";
@@ -171,7 +170,7 @@ public class MeshStencilCreator : MonoBehaviour {
             m.SetUVs(0, allUVs);
  
             //Create a GameObject
-            string baseName = target.name.Substring(0, target.name.IndexOf("_"));
+            string baseName = target.name.Replace(" ", "_");
             string meshName = meshPrefix + baseName;
             Debug.Log("baseName: " + baseName + " | meshName: " + meshName);
             GameObject child = new GameObject(meshName);
@@ -193,7 +192,7 @@ public class MeshStencilCreator : MonoBehaviour {
             bc.size = new Vector3(m.bounds.size.x, m.bounds.size.y, Mathf.Max(0.1f, m.bounds.size.z));
  
             #if UNITY_EDITOR
-            string[] ass = AssetDatabase.FindAssets(baseName + "_spec" + " t:texture");
+            string[] ass = AssetDatabase.FindAssets("clouds_spec" + " t:texture");
             if (ass.Length != 1) {
                 Debug.LogError("Spec map asset error: " + baseName);
                 continue;
@@ -205,14 +204,14 @@ public class MeshStencilCreator : MonoBehaviour {
                 continue;
             }
  
-            Material newFrontMat = new Material(faceMaterialToCopy);
+            Material newFrontMat = new Material(buildingMaterial.FaceMaterial);
             newFrontMat.name = materialPrefix + baseName;
             newFrontMat.SetTexture("_BaseMap", target.texture);
             newFrontMat.SetTexture("_SpecGlossMap", specMap);
             newFrontMat.SetTexture("_OcclusionMap", specMap);
             mr.materials = new Material[] {
                 newFrontMat,
-                sideMaterial
+                buildingMaterial.SideMaterial
             };
  
             AssetDatabase.CreateAsset(m, meshPath + meshName + ".asset");
