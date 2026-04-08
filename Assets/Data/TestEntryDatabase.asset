@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9331a2e2c918a49bf86fcc91ecc613d9, type: 3}
+  m_Name: TestEntryDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::TestEntryDatabase
+  entries:
+  - id: 2
+    promt_id: 1
+    answer: AD
+    sprite: {fileID: 21300000, guid: 58eedcb15de364625ab98831c68277f8, type: 3}
+    position: {x: 236.25612, y: 1.0100007, z: 128.66602}
+    dataPosted: 2026-04-06 15:33:48
+  - id: 3
+    promt_id: 0
+    answer: a
+    sprite: {fileID: 21300000, guid: cadc387f86b394ae2b95f7da40846cac, type: 3}
+    position: {x: 255.07411, y: 1.0099998, z: 116.62537}
+    dataPosted: 2026-04-06 15:39:22
