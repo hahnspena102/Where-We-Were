@@ -8,6 +8,7 @@ public class EntryPanel : MonoBehaviour
     private CanvasGroup canvasGroup;
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private TMP_InputField answerInputField;
     private GameManager gameManager;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -73,5 +74,10 @@ public class EntryPanel : MonoBehaviour
     public void PreviousPage()
     {
         gameManager.PreviousPage();
+    }
+
+    public string GetEntryText()
+    {
+        return answerInputField.text;
     }
 }

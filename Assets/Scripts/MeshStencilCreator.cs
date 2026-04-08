@@ -170,7 +170,7 @@ public class MeshStencilCreator : MonoBehaviour {
             m.SetUVs(0, allUVs);
  
             //Create a GameObject
-            string baseName = target.name.Substring(0, target.name.IndexOf("_"));
+            string baseName = target.name.Replace(" ", "_");
             string meshName = meshPrefix + baseName;
             Debug.Log("baseName: " + baseName + " | meshName: " + meshName);
             GameObject child = new GameObject(meshName);
