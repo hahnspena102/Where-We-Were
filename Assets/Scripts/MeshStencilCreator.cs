@@ -218,7 +218,10 @@ public class MeshStencilCreator : MonoBehaviour {
             AssetDatabase.CreateAsset(newFrontMat, materialPath + newFrontMat.name + ".mat");
             AssetDatabase.SaveAssets();
             #endif
- 
+
+            // add Building component
+            Building building = child.AddComponent<Building>();
+
             Debug.Log("Finished creating Mesh for " + target.name);
         }
  
