@@ -19362,8 +19362,7 @@ MonoBehaviour:
   depth: 0.05
   meshPrefix: Cardboard_
   meshPath: Assets/Buildings/
-  faceMaterialToCopy: {fileID: 2100000, guid: 7d162f8e7fb8c4ef2969ce1791a146d3, type: 2}
-  sideMaterial: {fileID: 2100000, guid: a62cd1b990dca4731a1b09bf864f24d7, type: 2}
+  buildingMaterial: {fileID: 0}
   edgeUVWidth: 0.1015625
   materialPrefix: CardboardFace_
   materialPath: Assets/Materials/
@@ -127792,6 +127791,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08f712e45ecba47309d5632a2487eff9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  drawingDisplayPrefab: {fileID: 0}
 --- !u!4 &1068916881
 Transform:
   m_ObjectHideFlags: 0
