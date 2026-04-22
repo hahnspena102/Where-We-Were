@@ -15,7 +15,7 @@ public class PromptPanel : MonoBehaviour
     void Start()
     {
         canvasGroup.alpha = 0;
-        panelRect = GetComponent<RectTransform>();
+        //panelRect = GetComponent<RectTransform>();
         //StartCoroutine(PromptCoroutine("Recall a place you felt alone."));
 
     }
