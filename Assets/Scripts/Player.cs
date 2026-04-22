@@ -12,9 +12,13 @@ public class Player : MonoBehaviour
     [SerializeField] private Camera cam;
     [SerializeField] private Transform hoverProjector;
     [SerializeField] private float hoverOffset = 0.01f;
+    [SerializeField] private Entry currentHoverEntry;
     private Vector2 moveInput;
     private float holdTime;
     private GameManager gameManager;
+
+    public Entry CurrentHoverEntry { get => currentHoverEntry; set => currentHoverEntry = value; }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -39,6 +43,17 @@ public class Player : MonoBehaviour
         else
         {
             holdTime = 0f;
+        }
+
+        currentHoverEntry = null;
+        Ray ray = cam.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {            
+            DrawingDisplay drawingDisplay = hit.collider.GetComponent<DrawingDisplay>();
+            if (drawingDisplay != null)            {
+                currentHoverEntry = drawingDisplay.Entry;
+            }
+          
         }
 
 
