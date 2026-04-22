@@ -1,4 +1,4 @@
-/WebGLTemplates/
+
 # This .gitignore file should be placed at the root of your Unity project directory
 #
 .DS_Store
@@ -74,3 +74,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# web gl temp
+/[Aa]ssets/WebGLTemplates/
