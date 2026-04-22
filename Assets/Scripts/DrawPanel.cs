@@ -14,6 +14,7 @@ public class DrawPanel : MonoBehaviour
 
     [Header("Drawing")]
     [SerializeField] private RawImage drawCanvas;
+    [SerializeField] private Color currentColor = Color.black;
     private Texture2D drawTexture;
     private Color[] clearColors;
 
@@ -22,6 +23,9 @@ public class DrawPanel : MonoBehaviour
     [SerializeField] private InputActionReference mousePositionAction;
     [SerializeField] private int brushSize = 4;
     [SerializeField] private GameManager gameManager;
+    [SerializeField] private PromptData promptData;
+
+    public Color CurrentColor { get => currentColor; set => currentColor = value; }
 
     void Start()
     {
@@ -33,6 +37,8 @@ public class DrawPanel : MonoBehaviour
 
         gameManager = FindFirstObjectByType<GameManager>();
         InitCanvas();
+
+        currentColor = promptData.ColorPalette[0];
         //StartEntry("Describe the place you recalled.");
     }
 
@@ -94,7 +100,8 @@ public class DrawPanel : MonoBehaviour
 
                     if (drawX >= 0 && drawX < resolution && drawY >= 0 && drawY < resolution)
                     {
-                        drawTexture.SetPixel(drawX, drawY, Color.black);
+        
+                        drawTexture.SetPixel(drawX, drawY, currentColor);
                         pixelChanged = true;
                     }
                 }
@@ -167,7 +174,7 @@ public class DrawPanel : MonoBehaviour
             }
             else
             {
-                pixels[i] = Color.black;
+                pixels[i] = new Color(pixels[i].r, pixels[i].g, pixels[i].b, 1);
             }
         }
 
@@ -175,5 +182,11 @@ public class DrawPanel : MonoBehaviour
         processed.Apply();
 
         return processed;
+    }
+
+    public void ClearCanvas()
+    {
+        drawTexture.SetPixels(clearColors);
+        drawTexture.Apply();
     }
 }

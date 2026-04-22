@@ -3,6 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 public enum GameState
 {
@@ -29,6 +30,7 @@ public class GameManager : MonoBehaviour
     private Vector3 hoverPosition;
     
     private DatabaseManager databaseManager;
+    private readonly HashSet<int> displayedEntryIds = new HashSet<int>();
 
     public Vector3 HoverPosition { get => hoverPosition; set => hoverPosition = value; }
     public GameState CurrentState { get => currentState; set => currentState = value; }
@@ -41,7 +43,20 @@ public class GameManager : MonoBehaviour
         hoverProjector = FindFirstObjectByType<HoverProjector>();
         databaseManager = FindFirstObjectByType<DatabaseManager>();
 
+        if (databaseManager != null)
+        {
+            databaseManager.RemoteEntryLoaded += SpawnEntryDisplay;
+        }
+
         LoadData();
+    }
+
+    void OnDestroy()
+    {
+        if (databaseManager != null)
+        {
+            databaseManager.RemoteEntryLoaded -= SpawnEntryDisplay;
+        }
     }
     void Awake() {
         int countLoaded = SceneManager.sceneCount;
@@ -67,22 +82,45 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Loading {databaseManager.GetAllEntries().Length} entries from database.");
         foreach (Entry entry in databaseManager.GetAllEntries())
         {
-            GameObject entryGO = Instantiate(drawingDisplayPrefab, entry.position, Quaternion.identity);
-            entryGO.transform.localPosition = entry.position + new Vector3(0, UnityEngine.Random.Range(5f, 12f), 0);
-            entryGO.transform.localScale = Vector3.one * UnityEngine.Random.Range(2.0f, 8.0f);
-            SpriteRenderer sr = entryGO.GetComponent<SpriteRenderer>();
-            if (sr != null)            {
-                sr.sprite = entry.sprite;
-            }
-            DrawingDisplay dd = entryGO.GetComponent<DrawingDisplay>();
-            if (dd != null)            {
-                dd.ShowDrawing(entry.sprite.texture);
-            }
-            Debug.Log($"Loaded entry ID {entry.id} at position {entry.position}");
-            
-            
+            SpawnEntryDisplay(entry);
         }
   
+    }
+
+    private void SpawnEntryDisplay(Entry entry)
+    {
+        if (entry == null)
+        {
+            return;
+        }
+
+        if (entry.id > 0 && displayedEntryIds.Contains(entry.id))
+        {
+            return;
+        }
+
+        GameObject entryGO = Instantiate(drawingDisplayPrefab, entry.position, Quaternion.identity);
+        entryGO.transform.localPosition = entry.position + new Vector3(0, UnityEngine.Random.Range(5f, 12f), 0);
+        entryGO.transform.localScale = Vector3.one * UnityEngine.Random.Range(2.0f, 8.0f);
+
+        SpriteRenderer sr = entryGO.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            sr.sprite = entry.sprite;
+        }
+
+        DrawingDisplay dd = entryGO.GetComponent<DrawingDisplay>();
+        if (dd != null)
+        {
+            dd.Entry = entry;
+        }
+
+        if (entry.id > 0)
+        {
+            displayedEntryIds.Add(entry.id);
+        }
+
+        Debug.Log($"Loaded entry ID {entry.id} at position {entry.position}");
     }
 
     void Update()
@@ -133,24 +171,12 @@ public class GameManager : MonoBehaviour
             drawPanel.HideEntry();
 
             Texture2D processed = drawPanel.GetProcessedTexture();
-
-            GameObject drawingGO = Instantiate(drawingDisplayPrefab, hoverPosition + new Vector3(0, 8f, 0), Quaternion.identity);
-            SpriteRenderer sr = drawingGO.GetComponent<SpriteRenderer>();
-            if (sr != null)            {
-                Sprite drawingSprite = Sprite.Create(processed, new Rect(0, 0, processed.width, processed.height), new Vector2(0.5f, 0.5f));
-                sr.sprite = drawingSprite;
-            }
-            drawingGO.transform.localScale = Vector3.one * 5f;
-            DrawingDisplay dd = drawingGO.GetComponent<DrawingDisplay>();
-            if (dd != null)            {
-                dd.ShowDrawing(processed);
-            }
             hoverProjector.HideHover();
 
             currentState = GameState.Reviewing;
 
             Entry entry = databaseManager.AddEntry(hoverPosition, entryPanel.GetEntryText(), processed);
-            
+            SpawnEntryDisplay(entry);
 
         }
     }
