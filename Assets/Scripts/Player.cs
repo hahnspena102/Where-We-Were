@@ -50,7 +50,21 @@ public class Player : MonoBehaviour
             rb.linearVelocity = Vector3.zero;
             return;
         }
-        rb.linearVelocity = new Vector3(moveInput.x, rb.linearVelocity.y, moveInput.y) * speed;
+        Vector3 movement = new Vector3(moveInput.x, 0f, moveInput.y) * speed;
+       if (OnSlope(out RaycastHit hit)) {
+            movement = Vector3.ProjectOnPlane(movement, hit.normal);
+            rb.linearVelocity = movement;
+       } else {
+            movement.y = rb.linearVelocity.y;
+            rb.linearVelocity = movement;
+       }
     }
-    
+
+    bool OnSlope(out RaycastHit hit) {
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 1.5f)) {
+            float angle = Vector3.Angle(hit.normal, Vector3.up);
+            return angle > 0f && angle < 45f; 
+        }
+        return false;
+    }
 }
