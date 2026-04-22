@@ -77,3 +77,4 @@ crashlytics-build.properties
 
 # web gl temp
 /[Aa]ssets/WebGLTemplates/
+/[Aa]ssets/WebGLTemplates.meta
