@@ -4,19 +4,49 @@ using System;
 
 public class DatabaseManager : MonoBehaviour
 {
+    public event Action<Entry> RemoteEntryLoaded;
+
     public TestEntryDatabase testEntryDatabase;
+    public DatabaseLinker databaseLinker;
+
+    private bool useLinkedDatabase;
 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        if (databaseLinker == null)
+        {
+            databaseLinker = GetComponent<DatabaseLinker>();
+        }
+
+        useLinkedDatabase = IsLinkedDatabaseAvailable();
+
+        if (useLinkedDatabase)
+        {
+            Debug.Log("Web database available. New entries will be sent to the linked database.");
+            databaseLinker.EntryLoadedFromDatabase += HandleEntryLoadedFromDatabase;
+            databaseLinker.ReadEntriesFromDatabase();
+        }
+        else
+        {
+            Debug.Log("Linked web database unavailable in this runtime/configuration. Falling back to the test dataset.");
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
         
+    }
+
+    private void OnDestroy()
+    {
+        if (databaseLinker != null)
+        {
+            databaseLinker.EntryLoadedFromDatabase -= HandleEntryLoadedFromDatabase;
+            databaseLinker.StopReadingEntriesFromDatabase();
+        }
     }
 
     public Entry AddEntry(Vector3 position, string answer, Texture2D processed)
@@ -62,18 +92,101 @@ public class DatabaseManager : MonoBehaviour
         int newId = testEntryDatabase.entries.Length > 0 ? testEntryDatabase.entries[testEntryDatabase.entries.Length - 1].id + 1 : 1;
         newEntry.id = newId;
 
-        Entry[] updatedEntries = new Entry[testEntryDatabase.entries.Length + 1];
-        for (int i = 0; i < testEntryDatabase.entries.Length; i++)
+        if (useLinkedDatabase)
         {
-            updatedEntries[i] = testEntryDatabase.entries[i];
+            try
+            {
+                databaseLinker.WriteEntryToDatabase(newEntry, imgBytes, fileName);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Linked database write failed. Falling back to test dataset. {ex.Message}");
+                useLinkedDatabase = false;
+            }
         }
-        updatedEntries[updatedEntries.Length - 1] = newEntry;
-        testEntryDatabase.entries = updatedEntries;
+
+        // Keep a local in-memory copy so current runtime systems can still read entries.
+        AddEntryToTestDataset(newEntry);
         return newEntry;
     }
 
     public Entry[] GetAllEntries()
     {
         return testEntryDatabase.entries;
+    }
+
+    private bool IsLinkedDatabaseAvailable()
+    {
+        if (databaseLinker == null)
+        {
+            Debug.LogWarning("DatabaseLinker reference is missing.");
+            return false;
+        }
+
+        if (!databaseLinker.HasDatabasePathConfigured())
+        {
+            Debug.LogWarning("DatabaseLinker has no database path configured.");
+            return false;
+        }
+
+        bool isRuntimeAvailable = databaseLinker.IsRuntimeFirebaseAvailable();
+        if (!isRuntimeAvailable)
+        {
+            Debug.LogWarning($"Firebase runtime unavailable on platform '{Application.platform}'. Use a WebGL player build.");
+        }
+
+        return isRuntimeAvailable;
+    }
+
+    private void AddEntryToTestDataset(Entry newEntry)
+    {
+        if (testEntryDatabase == null)
+        {
+            Debug.LogWarning("No test dataset assigned; entry is not cached locally.");
+            return;
+        }
+
+        Entry[] existingEntries = testEntryDatabase.entries ?? Array.Empty<Entry>();
+        Entry[] updatedEntries = new Entry[existingEntries.Length + 1];
+
+        for (int i = 0; i < existingEntries.Length; i++)
+        {
+            updatedEntries[i] = existingEntries[i];
+        }
+
+        updatedEntries[updatedEntries.Length - 1] = newEntry;
+        testEntryDatabase.entries = updatedEntries;
+    }
+
+    private void HandleEntryLoadedFromDatabase(Entry remoteEntry)
+    {
+        if (remoteEntry == null)
+        {
+            return;
+        }
+
+        AddOrReplaceEntryInDataset(remoteEntry);
+        RemoteEntryLoaded?.Invoke(remoteEntry);
+    }
+
+    private void AddOrReplaceEntryInDataset(Entry newEntry)
+    {
+        if (testEntryDatabase == null)
+        {
+            return;
+        }
+
+        Entry[] existingEntries = testEntryDatabase.entries ?? Array.Empty<Entry>();
+        for (int i = 0; i < existingEntries.Length; i++)
+        {
+            if (existingEntries[i] != null && existingEntries[i].id == newEntry.id)
+            {
+                existingEntries[i] = newEntry;
+                testEntryDatabase.entries = existingEntries;
+                return;
+            }
+        }
+
+        AddEntryToTestDataset(newEntry);
     }
 }
