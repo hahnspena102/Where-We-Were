@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Entry currentHoverEntry;
     private Vector2 moveInput;
     private float holdTime;
+    private float holdDuration = 1f;
     private GameManager gameManager;
 
     public Entry CurrentHoverEntry { get => currentHoverEntry; set => currentHoverEntry = value; }
@@ -35,7 +36,7 @@ public class Player : MonoBehaviour
         {
             holdTime += Time.deltaTime;
 
-            if (holdTime >= 1f)
+            if (holdTime >= holdDuration)
             {
                 gameManager.PlayerHold();
             }
@@ -81,5 +82,10 @@ public class Player : MonoBehaviour
             return angle > 0f && angle < 45f; 
         }
         return false;
+    }
+
+    public float GetHoldPercentage()
+    {
+        return Mathf.Clamp01(holdTime / holdDuration);
     }
 }

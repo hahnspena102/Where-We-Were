@@ -18,12 +18,15 @@ public class DrawPanel : MonoBehaviour
     private Texture2D drawTexture;
     private Color[] clearColors;
 
-    private int resolution = 256;
+    private int resolution = 64;
     [SerializeField] private InputActionReference clickAction;
     [SerializeField] private InputActionReference mousePositionAction;
-    [SerializeField] private int brushSize = 4;
+    private int brushSize = 1;
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PromptData promptData;
+    
+    private Vector2 previousMousePos = Vector2.zero;
+    private bool wasMousePressed = false;
 
     public Color CurrentColor { get => currentColor; set => currentColor = value; }
 
@@ -65,8 +68,13 @@ public class DrawPanel : MonoBehaviour
 
     void HandleDrawing()
     {
-        if (!clickAction.action.IsPressed())
+        bool isMousePressed = clickAction.action.IsPressed();
+        
+        if (!isMousePressed)
+        {
+            wasMousePressed = false;
             return;
+        }
 
         RectTransform rect = drawCanvas.rectTransform;
 
@@ -91,24 +99,53 @@ public class DrawPanel : MonoBehaviour
         {
             bool pixelChanged = false;
 
-            for (int xOffset = -brushSize; xOffset <= brushSize; xOffset++)
+            // If this is the first frame of drawing, just draw at current position
+            if (!wasMousePressed)
             {
-                for (int yOffset = -brushSize; yOffset <= brushSize; yOffset++)
-                {
-                    int drawX = px + xOffset;
-                    int drawY = py + yOffset;
-
-                    if (drawX >= 0 && drawX < resolution && drawY >= 0 && drawY < resolution)
-                    {
-        
-                        drawTexture.SetPixel(drawX, drawY, currentColor);
-                        pixelChanged = true;
-                    }
-                }
+                DrawBrush(px, py, ref pixelChanged);
+                wasMousePressed = true;
             }
+            else
+            {
+                // Draw a line from previous position to current position
+                DrawLine(previousMousePos, new Vector2(px, py), ref pixelChanged);
+            }
+
+            previousMousePos = new Vector2(px, py);
 
             if (pixelChanged)
                 drawTexture.Apply();
+        }
+    }
+
+    void DrawBrush(int centerX, int centerY, ref bool pixelChanged)
+    {
+        for (int xOffset = -brushSize; xOffset <= brushSize; xOffset++)
+        {
+            for (int yOffset = -brushSize; yOffset <= brushSize; yOffset++)
+            {
+                int drawX = centerX + xOffset;
+                int drawY = centerY + yOffset;
+
+                if (drawX >= 0 && drawX < resolution && drawY >= 0 && drawY < resolution)
+                {
+                    drawTexture.SetPixel(drawX, drawY, currentColor);
+                    pixelChanged = true;
+                }
+            }
+        }
+    }
+
+    void DrawLine(Vector2 from, Vector2 to, ref bool pixelChanged)
+    {
+        float distance = Vector2.Distance(from, to);
+        int steps = Mathf.CeilToInt(distance);
+
+        for (int i = 0; i <= steps; i++)
+        {
+            float t = steps > 0 ? i / (float)steps : 0;
+            Vector2 pos = Vector2.Lerp(from, to, t);
+            DrawBrush(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), ref pixelChanged);
         }
     }
 

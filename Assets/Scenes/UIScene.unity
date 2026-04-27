@@ -1434,7 +1434,6 @@ MonoBehaviour:
   currentColor: {r: 0, g: 0, b: 0, a: 1}
   clickAction: {fileID: 538759600}
   mousePositionAction: {fileID: 1356618144}
-  brushSize: 4
   gameManager: {fileID: 0}
   promptData: {fileID: 11400000, guid: 5feee29b99c844778b6933fae4343fa2, type: 2}
 --- !u!1 &508661944
@@ -3360,7 +3359,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Hold right click to place!
+  m_text: Hold left click to place!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b68199b53ce8d4528a019f5cd8de4392, type: 2}
   m_sharedMaterial: {fileID: -3280702279888782539, guid: b68199b53ce8d4528a019f5cd8de4392, type: 2}
