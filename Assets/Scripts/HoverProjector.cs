@@ -1,23 +1,30 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class HoverProjector : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private float hoverOffset = 0.4f;
 
-    [SerializeField] private SpriteRenderer spriteRenderer;
+    private CanvasGroup canvasGroup;
+    private Slider slider;
     private Player player;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         player = FindFirstObjectByType<Player>();
+        canvasGroup = GetComponentInChildren<CanvasGroup>();
+        slider = GetComponent<Slider>();
+        canvasGroup.alpha = 0;
+    
     }
 
     // Update is called once per frame
   public Vector3 HoverProject()
     {
         Ray ray = cam.ScreenPointToRay(Mouse.current.position.ReadValue());
+        slider.value = player.GetHoldPercentage();
 
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
@@ -29,7 +36,7 @@ public class HoverProjector : MonoBehaviour
 
             if (mostlyUp && withinRange)
             {
-                spriteRenderer.enabled = true;
+                canvasGroup.alpha = 1;
 
                 transform.position = hit.point + hit.normal + new Vector3(0, hoverOffset, 0);
                 transform.rotation = Quaternion.LookRotation(hit.normal);
@@ -38,12 +45,12 @@ public class HoverProjector : MonoBehaviour
             }
             else
             {
-                spriteRenderer.enabled = false;
+                canvasGroup.alpha = 0;
             }
         }
         else
         {
-            spriteRenderer.enabled = false;
+            canvasGroup.alpha = 0;
         }
 
         return Vector3.zero;
@@ -52,7 +59,7 @@ public class HoverProjector : MonoBehaviour
     public void HideHover()
     {
         gameObject.SetActive(false);
-        spriteRenderer.enabled = false;
+        canvasGroup.alpha = 0;
     }
 
 }
