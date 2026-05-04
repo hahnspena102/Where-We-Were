@@ -15,4 +15,5 @@ public class PromptData : ScriptableObject
     [SerializeField] private Color[] colorPalette;
 
     public Color[] ColorPalette { get => colorPalette; set => colorPalette = value; }
+    public global::System.String PromptText { get => promptText; set => promptText = value; }
 }

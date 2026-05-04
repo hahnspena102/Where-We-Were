@@ -11,6 +11,7 @@ public class DrawPanel : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private float fadeDuration = 0.5f;
+    [SerializeField] private Button nextButton;
 
     [Header("Drawing")]
     [SerializeField] private RawImage drawCanvas;
@@ -24,11 +25,29 @@ public class DrawPanel : MonoBehaviour
     private int brushSize = 1;
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PromptData promptData;
+    [SerializeField] private AudioClip selectColorSound;
+    [SerializeField] private AudioClip drawSound;
+    [SerializeField] private AudioClip clearCanvasSound;
+    [SerializeField] private AudioSource audioSource;
     
     private Vector2 previousMousePos = Vector2.zero;
     private bool wasMousePressed = false;
+    private bool isDrawSoundPlaying = false;
 
-    public Color CurrentColor { get => currentColor; set => currentColor = value; }
+    public Color CurrentColor
+    {
+        get => currentColor;
+        set
+        {
+            if (currentColor == value)
+            {
+                return;
+            }
+
+            currentColor = value;
+            PlaySound(selectColorSound);
+        }
+    }
 
     void Start()
     {
@@ -41,13 +60,41 @@ public class DrawPanel : MonoBehaviour
         gameManager = FindFirstObjectByType<GameManager>();
         InitCanvas();
 
+        // Ensure we have an AudioSource at runtime so sounds will play.
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+                audioSource.playOnAwake = false;
+            }
+        }
+
         currentColor = promptData.ColorPalette[0];
         //StartEntry("Describe the place you recalled.");
     }
 
     void Update()
     {
-        if (canvasGroup.interactable) HandleDrawing();
+        bool drawnPixels = GetNumColoredPixels() > 64;
+        if (drawnPixels)
+        {
+            nextButton.interactable = true;
+        }
+        else
+        {
+            nextButton.interactable = false;
+        }
+        
+        if (canvasGroup.interactable)
+        {
+            HandleDrawing();
+        }
+        else
+        {
+            StopDrawSound();
+        }
     }
 
     void InitCanvas()
@@ -58,7 +105,7 @@ public class DrawPanel : MonoBehaviour
         clearColors = new Color[resolution * resolution];
 
         for (int i = 0; i < clearColors.Length; i++)
-            clearColors[i] = Color.white;
+            clearColors[i] =  new Color(0, 0, 0, 0); // fully transparent
 
         drawTexture.SetPixels(clearColors);
         drawTexture.Apply();
@@ -73,6 +120,7 @@ public class DrawPanel : MonoBehaviour
         if (!isMousePressed)
         {
             wasMousePressed = false;
+            StopDrawSound();
             return;
         }
 
@@ -85,7 +133,10 @@ public class DrawPanel : MonoBehaviour
             mousePositionAction.action.ReadValue<Vector2>(),
             null,
             out localMousePos))
+        {
+            StopDrawSound();
             return;
+        }
 
         Rect r = rect.rect;
 
@@ -104,6 +155,7 @@ public class DrawPanel : MonoBehaviour
             {
                 DrawBrush(px, py, ref pixelChanged);
                 wasMousePressed = true;
+                StartDrawSound();
             }
             else
             {
@@ -112,7 +164,8 @@ public class DrawPanel : MonoBehaviour
             }
 
             previousMousePos = new Vector2(px, py);
-
+            for (int i = 0; i < clearColors.Length; i++)
+                        clearColors[i] =  new Color(0, 0, 0, 0); // fully transparent
             if (pixelChanged)
                 drawTexture.Apply();
         }
@@ -151,6 +204,7 @@ public class DrawPanel : MonoBehaviour
 
     public void StartEntry(string question)
     {
+
         StartCoroutine(PromptEntry(question));
     }
 
@@ -185,6 +239,13 @@ public class DrawPanel : MonoBehaviour
 
         public void NextPage()
     {
+                // check to see if at least 64 pixels are colored in before allowing entry
+        if (GetNumColoredPixels() < 64)
+        {
+            Debug.Log("Not enough pixels drawn to proceed");
+            return;
+        }
+
         gameManager.NextPage();
     }
 
@@ -223,7 +284,67 @@ public class DrawPanel : MonoBehaviour
 
     public void ClearCanvas()
     {
+        PlaySound(clearCanvasSound);
         drawTexture.SetPixels(clearColors);
         drawTexture.Apply();
+    }
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (audioSource == null || clip == null)
+        {
+            return;
+        }
+
+        audioSource.PlayOneShot(clip);
+    }
+
+    private void StartDrawSound()
+    {
+        if (audioSource == null)
+        {
+            Debug.LogWarning("StartDrawSound: no AudioSource available");
+            return;
+        }
+
+        if (drawSound == null)
+        {
+            Debug.LogWarning("StartDrawSound: drawSound clip is not set");
+            return;
+        }
+
+        if (isDrawSoundPlaying)
+            return;
+
+        audioSource.loop = true;
+        audioSource.clip = drawSound;
+        audioSource.Play();
+        isDrawSoundPlaying = true;
+        Debug.Log("Draw sound started");
+    }
+
+    private void StopDrawSound()
+    {
+        if (audioSource == null || !isDrawSoundPlaying)
+            return;
+
+        audioSource.Stop();
+        audioSource.loop = false;
+        audioSource.clip = null;
+        isDrawSoundPlaying = false;
+        Debug.Log("Draw sound stopped");
+    }
+
+    public int GetNumColoredPixels()
+    {
+        int coloredPixelCount = 0;
+        Color[] pixels = drawTexture.GetPixels();
+        for (int i = 0; i < pixels.Length; i++)        {
+            if (pixels[i].a > 0) {
+                coloredPixelCount++;
+            }   
+        }
+     
+        return coloredPixelCount;
     }
 }

@@ -19,6 +19,9 @@ public enum GameState
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private GameObject drawingDisplayPrefab;
+    [SerializeField]private AudioClip flipPageSound;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private PromptData promptData;
     private float elapsedWorldTime;
     private PromptPanel promptPanel;
     private EntryPanel entryPanel;
@@ -151,7 +154,7 @@ public class GameManager : MonoBehaviour
         
         currentState = GameState.Answering;
         promptPanel.HidePrompt();
-        entryPanel.StartEntry("Describe the place you recalled.");
+        entryPanel.StartEntry(promptData.PromptText);
     }
 
     public void NextPage()
@@ -164,7 +167,7 @@ public class GameManager : MonoBehaviour
             drawPanel.StartEntry("Draw a star!");
             currentState = GameState.Drawing;
 
-     
+            audioSource.PlayOneShot(flipPageSound);
         }
         else if (currentState == GameState.Drawing)
         {
@@ -173,7 +176,10 @@ public class GameManager : MonoBehaviour
             Texture2D processed = drawPanel.GetProcessedTexture();
             hoverProjector.HideHover();
 
+            audioSource.PlayOneShot(flipPageSound);
+
             currentState = GameState.Reviewing;
+
 
             Entry entry = databaseManager.AddEntry(hoverPosition, entryPanel.GetEntryText(), processed);
             SpawnEntryDisplay(entry);
@@ -188,14 +194,17 @@ public class GameManager : MonoBehaviour
         if (currentState == GameState.Answering)
         {
             entryPanel.HideEntry();
-            promptPanel.StartPrompt("Recall a place you felt alone.");
+            promptPanel.StartPrompt(promptData.PromptText);
             currentState = GameState.Prompting;
+            audioSource.PlayOneShot(flipPageSound);
+
         }
         else if (currentState == GameState.Drawing)
         {
             drawPanel.HideEntry();
-            entryPanel.StartEntry("Describe the place you recalled.");
+            entryPanel.StartEntry(promptData.PromptText);
             currentState = GameState.Answering;
+            audioSource.PlayOneShot(flipPageSound);
         }
     }
 }
