@@ -6,10 +6,15 @@ public class HoverProjector : MonoBehaviour
 {
     [SerializeField] private Camera cam;
     [SerializeField] private float hoverOffset = 0.4f;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip chargeSound;
+    [SerializeField]private AudioClip finishSound;
 
     private CanvasGroup canvasGroup;
     private Slider slider;
     private Player player;
+    private GameManager gameManager;
+    private bool finishSoundPlayed;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -17,6 +22,7 @@ public class HoverProjector : MonoBehaviour
         canvasGroup = GetComponentInChildren<CanvasGroup>();
         slider = GetComponent<Slider>();
         canvasGroup.alpha = 0;
+        gameManager = FindFirstObjectByType<GameManager>();
     
     }
 
@@ -60,6 +66,59 @@ public class HoverProjector : MonoBehaviour
     {
         gameObject.SetActive(false);
         canvasGroup.alpha = 0;
+        
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+        finishSoundPlayed = false;
+    }
+
+    void Update()
+    {
+        if (player == null || audioSource == null)
+        {
+            return;
+        }
+
+
+        float holdPercentage = player.GetHoldPercentage();
+        Debug.Log("Hover percentage: " + holdPercentage);
+
+        if (holdPercentage >= 1f)
+        {
+            if (!finishSoundPlayed)
+            {
+                if (audioSource.isPlaying)
+                {
+                    audioSource.Stop();
+                }
+
+                if (finishSound != null)
+                {
+                    audioSource.PlayOneShot(finishSound);
+                }
+
+                finishSoundPlayed = true;
+            }
+        }
+        else if (holdPercentage > 0.05f)
+        {
+            finishSoundPlayed = false;
+
+            if (!audioSource.isPlaying && chargeSound != null)
+            {
+                audioSource.PlayOneShot(chargeSound);
+            }
+        }
+        else
+        {
+            if (audioSource.isPlaying && !finishSoundPlayed)
+            {
+                audioSource.Stop();
+            }
+        }
+    
     }
 
 }

@@ -11,10 +11,18 @@ public class PromptPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private float fadeDuration = 0.5f;
     [SerializeField] private float showDuration = 5.0f;
+    [SerializeField] private AudioClip crumbleSound;
+    [SerializeField]private AudioClip revealSound;
+    
+    [SerializeField] private AudioSource audioSource1;
+    [SerializeField] private AudioSource audioSource2;
+    private bool hasDisplayedPrompt = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         canvasGroup.alpha = 0;
+
+
         //panelRect = GetComponent<RectTransform>();
         //StartCoroutine(PromptCoroutine("Recall a place you felt alone."));
 
@@ -47,7 +55,17 @@ public class PromptPanel : MonoBehaviour
 
     IEnumerator PromptCoroutine(string question)
     {
+        if (hasDisplayedPrompt)
+        {
+            yield break; 
+        }
+        hasDisplayedPrompt = true; 
         promptText.text = question;
+
+        if (audioSource2 != null && revealSound != null)
+        {
+            audioSource2.PlayOneShot(revealSound);
+        }
         
         while(canvasGroup.alpha < 1)
         {
@@ -68,6 +86,7 @@ public class PromptPanel : MonoBehaviour
         Vector2 targetOffsetMax = new Vector2(-1000, -80);
 
         float t = 0f;
+        PlayCrumbleSound();
 
         while (t < moveDuration)
         {
@@ -79,8 +98,33 @@ public class PromptPanel : MonoBehaviour
 
             yield return null;
         }
+        // fade audio out
+        if (audioSource1 != null)
+        {
+            float startVolume = audioSource1.volume;
+            float fadeOutTime = 0.1f; 
+            float fadeOutTimer = 0f;
+
+            while (fadeOutTimer < fadeOutTime)
+            {
+                fadeOutTimer += Time.deltaTime;
+                audioSource1.volume = Mathf.Lerp(startVolume, 0, fadeOutTimer / fadeOutTime);
+                yield return null;
+            }
+            audioSource1.Stop();
+            audioSource1.volume = startVolume; 
+        }
+    
 
         panelRect.offsetMin = targetOffsetMin;
         panelRect.offsetMax = targetOffsetMax;
+    }
+
+    public void PlayCrumbleSound()
+    {
+        if (audioSource1 != null && crumbleSound != null)
+        {
+            audioSource1.PlayOneShot(crumbleSound);
+        }
     }
 }
