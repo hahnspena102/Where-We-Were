@@ -51,6 +51,12 @@ public class DatabaseManager : MonoBehaviour
 
     public Entry AddEntry(Vector3 position, string answer, Texture2D processed)
     {
+        //cap answer at 500 characters to prevent excessively long entries
+        if (answer.Length > 500)        {
+            answer = answer.Substring(0, 500);
+        }
+
+        // package entry
         Entry newEntry = new Entry
         {
             position = position,

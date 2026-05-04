@@ -32,7 +32,7 @@ public class Player : MonoBehaviour
     {
         moveInput = moveAction.action.ReadValue<Vector2>();
 
-        if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero)
+        if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero && gameManager.CurrentState == GameState.Prompting) 
         {
             holdTime += Time.deltaTime;
 

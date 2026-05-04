@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.UI;
 
 public class EntryPanel : MonoBehaviour
 {
@@ -9,7 +10,9 @@ public class EntryPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI promptText;
     [SerializeField] private float fadeDuration = 0.5f;
     [SerializeField] private TMP_InputField answerInputField;
+    [SerializeField] private Button nextButton;
     private GameManager gameManager;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,7 +32,14 @@ public class EntryPanel : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (!EnoughTextEntered())
+        {
+            nextButton.interactable = false;
+        }
+        else
+        {
+            nextButton.interactable = true;
+        }        
     }
 
     public void StartEntry(string question)
@@ -68,16 +78,29 @@ public class EntryPanel : MonoBehaviour
 
     public void NextPage()
     {
+        if (!EnoughTextEntered())
+        {
+            Debug.Log("Not enough text entered, not proceeding to next page.");
+            return;
+        }
+
         gameManager.NextPage();
     }
 
     public void PreviousPage()
     {
+
         gameManager.PreviousPage();
     }
 
     public string GetEntryText()
     {
         return answerInputField.text;
+    }
+
+    public bool EnoughTextEntered()
+    {
+        int minCharacters = 10; // Set a minimum character count for the answer
+        return !string.IsNullOrWhiteSpace(answerInputField.text) && answerInputField.text.Length >= minCharacters;
     }
 }
