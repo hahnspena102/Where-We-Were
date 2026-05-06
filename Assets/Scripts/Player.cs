@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     private float holdTime;
     private float holdDuration = 1f;
     private GameManager gameManager;
+    private Animator animator;
 
     public Entry CurrentHoverEntry { get => currentHoverEntry; set => currentHoverEntry = value; }
 
@@ -25,6 +26,7 @@ public class Player : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         gameManager = FindFirstObjectByType<GameManager>();
+        animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -55,6 +57,21 @@ public class Player : MonoBehaviour
                 currentHoverEntry = drawingDisplay.Entry;
             }
           
+        }
+
+        animator.SetFloat("speed", moveInput.magnitude);
+        // rotate player facing left or right based on input
+        if (moveInput.x > 0.1f) {
+            //Debug.Log("Facing right");
+        } else if (moveInput.x < -0.1f)
+        {
+            //Debug.Log("Facing left");
+        }
+            
+        if (moveInput.x > 0.1f || moveInput.x < -0.1f) {
+            
+            Vector3 lookDirection = new Vector3(0, 0, -moveInput.x);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDirection), Time.deltaTime * 10f);
         }
 
 
