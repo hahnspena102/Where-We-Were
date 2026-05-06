@@ -259,24 +259,7 @@ public class DrawPanel : MonoBehaviour
         Texture2D processed = new Texture2D(resolution, resolution, TextureFormat.RGBA32, false);
         processed.filterMode = FilterMode.Point;
 
-        Color[] pixels = drawTexture.GetPixels();
-
-        for (int i = 0; i < pixels.Length; i++)
-        {
-            float brightness = (pixels[i].r + pixels[i].g + pixels[i].b) / 3f;
-
-            // treat very bright pixels as background
-            if (brightness > 0.9f)
-            {
-                pixels[i] = new Color(0, 0, 0, 0);
-            }
-            else
-            {
-                pixels[i] = new Color(pixels[i].r, pixels[i].g, pixels[i].b, 1);
-            }
-        }
-
-        processed.SetPixels(pixels);
+        processed.SetPixels(drawTexture.GetPixels());
         processed.Apply();
 
         return processed;
