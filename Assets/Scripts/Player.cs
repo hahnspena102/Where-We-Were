@@ -11,13 +11,14 @@ public class Player : MonoBehaviour
 
     [SerializeField] private Camera cam;
     [SerializeField] private Transform hoverProjector;
-    [SerializeField] private float hoverOffset = 0.01f;
+
     [SerializeField] private Entry currentHoverEntry;
     private Vector2 moveInput;
     private float holdTime;
     private float holdDuration = 1f;
     private GameManager gameManager;
     private Animator animator;
+    private float facingDirection = 1f;
 
     public Entry CurrentHoverEntry { get => currentHoverEntry; set => currentHoverEntry = value; }
 
@@ -61,18 +62,12 @@ public class Player : MonoBehaviour
 
         animator.SetFloat("speed", moveInput.magnitude);
         // rotate player facing left or right based on input
-        if (moveInput.x > 0.1f) {
-            //Debug.Log("Facing right");
-        } else if (moveInput.x < -0.1f)
-        {
-            //Debug.Log("Facing left");
-        }
-            
         if (moveInput.x > 0.1f || moveInput.x < -0.1f) {
-            
-            Vector3 lookDirection = new Vector3(0, 0, -moveInput.x);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDirection), Time.deltaTime * 10f);
+            facingDirection = Mathf.Sign(moveInput.x);
         }
+
+        Quaternion targetRotation = Quaternion.Euler(0f, facingDirection < 0f ? 0f : 180f, 0f);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
 
 
     }
