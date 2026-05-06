@@ -1631,6 +1631,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DrawPanel
   promptText: {fileID: 1526992600}
   fadeDuration: 0.5
+  nextButton: {fileID: 83854071}
   drawCanvas: {fileID: 115650119}
   currentColor: {r: 0, g: 0, b: 0, a: 1}
   clickAction: {fileID: 538759600}
@@ -1865,7 +1866,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 513328107}
   m_Enabled: 1
-  m_Alpha: 0
+  m_Alpha: 1
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
@@ -1922,6 +1923,7 @@ MonoBehaviour:
   promptText: {fileID: 390293274}
   fadeDuration: 1
   answerInputField: {fileID: 1592120399}
+  nextButton: {fileID: 1444422724}
 --- !u!114 &538759600
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2426,7 +2428,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Type your response here...
+  m_text: "Type your response here... \n(10 characters minimum)"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b68199b53ce8d4528a019f5cd8de4392, type: 2}
   m_sharedMaterial: {fileID: -3280702279888782539, guid: b68199b53ce8d4528a019f5cd8de4392, type: 2}
@@ -3838,7 +3840,7 @@ MonoBehaviour:
   m_CharacterValidation: 0
   m_RegexValue: 
   m_GlobalPointSize: 14
-  m_CharacterLimit: 0
+  m_CharacterLimit: 250
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls: []
