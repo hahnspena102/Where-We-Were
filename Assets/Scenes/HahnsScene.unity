@@ -23997,7 +23997,11 @@ MonoBehaviour:
   drawingDisplayPrefab: {fileID: 7922758721323017257, guid: 8f15641b45d4b4c209bf3d15004500b3, type: 3}
   flipPageSound: {fileID: 8300000, guid: ab4f95b9c24614258b81bf484627f6ee, type: 3}
   audioSource: {fileID: 257647044}
-  promptData: {fileID: 11400000, guid: 5feee29b99c844778b6933fae4343fa2, type: 2}
+  promptDatas:
+  - {fileID: 11400000, guid: 40cefe7befd2742f9bd6e032a626dd04, type: 2}
+  - {fileID: 11400000, guid: 5feee29b99c844778b6933fae4343fa2, type: 2}
+  - {fileID: 11400000, guid: 53c5b3d97be384d24aff50216fe5f5a2, type: 2}
+  playerData: {fileID: 11400000, guid: 03a1d6060d44d4052870e8a2ff797503, type: 2}
 --- !u!82 &257647044
 AudioSource:
   m_ObjectHideFlags: 0
@@ -108299,11 +108303,13 @@ MonoBehaviour:
   rb: {fileID: 956882351}
   moveAction: {fileID: 144907036}
   jumpAction: {fileID: 0}
+  prompt1Action: {fileID: -8121302377066681552, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  prompt2Action: {fileID: -1874204165704177161, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  prompt3Action: {fileID: -7865052364132609111, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   clickAction: {fileID: 136555615}
   speed: 30
   cam: {fileID: 77850082}
   hoverProjector: {fileID: 0}
-  hoverOffset: 0.01
   currentHoverEntry:
     id: 0
     promt_id: 0
@@ -108311,6 +108317,7 @@ MonoBehaviour:
     sprite: {fileID: 0}
     position: {x: 0, y: 0, z: 0}
     dataPosted: 
+  playerData: {fileID: 11400000, guid: 03a1d6060d44d4052870e8a2ff797503, type: 2}
 --- !u!54 &956882351
 Rigidbody:
   m_ObjectHideFlags: 0

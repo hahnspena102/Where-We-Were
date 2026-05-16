@@ -21,7 +21,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject drawingDisplayPrefab;
     [SerializeField]private AudioClip flipPageSound;
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private PromptData promptData;
+    [SerializeField] private PromptData[] promptDatas;
+    [SerializeField] private PromptData currentPromptData;
+    [SerializeField] private PlayerData playerData;
     private float elapsedWorldTime;
     private PromptPanel promptPanel;
     private EntryPanel entryPanel;
@@ -37,6 +39,9 @@ public class GameManager : MonoBehaviour
 
     public Vector3 HoverPosition { get => hoverPosition; set => hoverPosition = value; }
     public GameState CurrentState { get => currentState; set => currentState = value; }
+    public PromptData CurrentPromptData { get => currentPromptData; set => currentPromptData = value; }
+    public int CurrentPromptIndex { get => playerData != null ? playerData.PromptIndex : 0; }
+    public PromptData[] PromptDatas { get => promptDatas; set => promptDatas = value; }
 
     void Start()
     {
@@ -51,6 +56,7 @@ public class GameManager : MonoBehaviour
             databaseManager.RemoteEntryLoaded += SpawnEntryDisplay;
         }
 
+        currentPromptData = promptDatas[playerData.PromptIndex];
         LoadData();
     }
 
@@ -129,12 +135,14 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         //Debug.Log("Current State: " + currentState);
+        
 
         elapsedWorldTime += Time.deltaTime;
+        if (elapsedWorldTime < 0.01f) return; // skip first few frames to allow for initialization
 
         if (elapsedWorldTime >= timeUntilPrompt && startPrompt == false) 
         {
-            promptPanel.StartPrompt("Recall a place you felt alone.");
+            promptPanel.StartPrompt(currentPromptData.PromptText);
             startPrompt = true;
             currentState = GameState.Prompting;
         }
@@ -154,7 +162,7 @@ public class GameManager : MonoBehaviour
         
         currentState = GameState.Answering;
         promptPanel.HidePrompt();
-        entryPanel.StartEntry(promptData.PromptText);
+        entryPanel.StartEntry(currentPromptData.PromptText);
     }
 
     public void NextPage()
@@ -164,7 +172,7 @@ public class GameManager : MonoBehaviour
         if (currentState == GameState.Answering)
         {
             entryPanel.HideEntry();
-            drawPanel.StartEntry("Draw a star!");
+            drawPanel.StartEntry(currentPromptData.DrawInstruction);
             currentState = GameState.Drawing;
 
             audioSource.PlayOneShot(flipPageSound);
@@ -194,7 +202,7 @@ public class GameManager : MonoBehaviour
         if (currentState == GameState.Answering)
         {
             entryPanel.HideEntry();
-            promptPanel.StartPrompt(promptData.PromptText);
+            promptPanel.StartPrompt(currentPromptData.PromptText);
             currentState = GameState.Prompting;
             audioSource.PlayOneShot(flipPageSound);
 
@@ -202,9 +210,25 @@ public class GameManager : MonoBehaviour
         else if (currentState == GameState.Drawing)
         {
             drawPanel.HideEntry();
-            entryPanel.StartEntry(promptData.PromptText);
+            entryPanel.StartEntry(currentPromptData.PromptText);
             currentState = GameState.Answering;
             audioSource.PlayOneShot(flipPageSound);
         }
+    }
+
+    public void RestartGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void NextPrompt()
+    {
+        playerData.PromptIndex = (playerData.PromptIndex + 1) % promptDatas.Length;
+        currentPromptData = promptDatas[playerData.PromptIndex];
+        if (playerData.PromptIndex >= promptDatas.Length)
+        {
+            return;
+        }
+        RestartGame();
     }
 }

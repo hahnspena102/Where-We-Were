@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: StarPrompt
   m_EditorClassIdentifier: Assembly-CSharp::PromptData
   promptText: Recall a place you felt alone.
+  drawInstruction: Draw a star!
   promptId: 0
+  databasePath: star
   colorPalette:
   - {r: 1, g: 0.48743218, b: 0.21226418, a: 1}
   - {r: 0.4764151, g: 0.5838171, b: 1, a: 1}

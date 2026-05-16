@@ -24,8 +24,7 @@ public class DatabaseLinker : MonoBehaviour
 	}
 
 	[SerializeField] private string databasePath = "demo/hello";
-	[SerializeField] private string entriesPath = "entries/prompt_0";
-	[SerializeField] private bool writeHelloWorldOnStart;
+	[SerializeField] private string entriesPath = "";
 	[SerializeField] private bool autoReconnectOnReadError = true;
 	[SerializeField] [Min(0)] private int maxReadRetryAttempts = 5;
 	[SerializeField] [Min(0.1f)] private float baseReadRetryDelaySeconds = 1.5f;
@@ -49,10 +48,8 @@ public class DatabaseLinker : MonoBehaviour
 
 	private void Start()
 	{
-		if (!writeHelloWorldOnStart)
-		{
-			return;
-		}
+		entriesPath = FindFirstObjectByType<GameManager>()?.CurrentPromptData.DatabasePath;
+
 
 		if (!IsRuntimeFirebaseAvailable())
 		{
@@ -135,7 +132,7 @@ public class DatabaseLinker : MonoBehaviour
 		};
 
 		string json = JsonUtility.ToJson(payload);
-		EnqueueWrite($"entries/prompt_{entry.promt_id}/{entry.id}", json);
+		EnqueueWrite($"{entriesPath}/{entry.id}", json);
 	}
 
 	public void ReadEntriesFromDatabase()
@@ -177,7 +174,7 @@ public class DatabaseLinker : MonoBehaviour
 			return;
 		}
 
-		FirebaseDatabase.StopListeningForChildAdded(entriesPath, gameObject.name, nameof(OnReadSuccess), nameof(OnReadError));
+		FirebaseDatabase.StopListeningForChildAdded(entriesPath, gameObject.name, nameof(OnChildAddedSuccess), nameof(OnReadError));
 		isListeningForEntries = false;
 	}
 
