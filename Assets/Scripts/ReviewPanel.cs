@@ -5,9 +5,11 @@ public class ReviewPanel : MonoBehaviour
 {
     [SerializeField] private Entry currentEntry;
     [SerializeField] private CanvasGroup canvasGroup;
+    [SerializeField] private CanvasGroup entryCanvasGroup;
     [SerializeField] private Image drawingRenderer;
     [SerializeField] private TMPro.TextMeshProUGUI answerText;
     [SerializeField] private GameManager gameManager;
+    [SerializeField] private Button nextPromptButton;
     private Player player;
 
     public Entry CurrentEntry { get => currentEntry; set => currentEntry = value; }
@@ -22,10 +24,29 @@ public class ReviewPanel : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        currentEntry = player.CurrentHoverEntry;
-        if (currentEntry != null && gameManager.CurrentState == GameState.Reviewing)
+        if (gameManager.CurrentState != GameState.Reviewing)
         {
-                canvasGroup.alpha = 1f;
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
+        else
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+        }
+
+        // if final prompt, hide next button
+        if (gameManager.CurrentPromptIndex >= gameManager.PromptDatas.Length - 1)
+        {            
+            nextPromptButton.gameObject.SetActive(false);
+        }
+
+        currentEntry = player.CurrentHoverEntry;
+        if (currentEntry != null)
+        {
+                entryCanvasGroup.alpha = 1f;
             if (currentEntry.sprite != null)
             {
                 drawingRenderer.sprite = currentEntry.sprite;
@@ -41,8 +62,14 @@ public class ReviewPanel : MonoBehaviour
         {
             drawingRenderer.sprite = null;
             answerText.text = string.Empty;
-            canvasGroup.alpha = 0f;
+            entryCanvasGroup.alpha = 0f;
         }
+    }
+
+    public void NextPrompt()
+    {
+        gameManager.NextPrompt();
+        Debug.Log("Next Prompt");
     }
 
 

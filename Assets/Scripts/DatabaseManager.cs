@@ -10,11 +10,14 @@ public class DatabaseManager : MonoBehaviour
     public DatabaseLinker databaseLinker;
 
     private bool useLinkedDatabase;
+    private GameManager gameManager;
 
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        gameManager = FindFirstObjectByType<GameManager>();
+
         if (databaseLinker == null)
         {
             databaseLinker = GetComponent<DatabaseLinker>();
@@ -66,11 +69,11 @@ public class DatabaseManager : MonoBehaviour
         };
 
         byte[] imgBytes = processed.EncodeToPNG();
-        string dataDir = Path.Combine(Application.dataPath, "Data");
+        string dataDir = ResolveLocalCacheDirectory();
         Directory.CreateDirectory(dataDir);
         string fileName = $"entry_{DateTime.Now:yyyyMMdd_HHmmss_fff}.png";
         string savePath = Path.Combine(dataDir, fileName);
-        string assetPath = $"Assets/Data/{fileName}";
+        string assetPath = GetAssetRelativePath(dataDir, fileName);
         File.WriteAllBytes(savePath, imgBytes);
 
 #if UNITY_EDITOR
@@ -95,8 +98,9 @@ public class DatabaseManager : MonoBehaviour
 
         Debug.Log("Saved PNG to: " + savePath + " | Sprite: " + newEntry.sprite);
     
-        int newId = testEntryDatabase.entries.Length > 0 ? testEntryDatabase.entries[testEntryDatabase.entries.Length - 1].id + 1 : 1;
+        int newId = GetCurrentPromptEntries().Length > 0 ? GetCurrentPromptEntries()[GetCurrentPromptEntries().Length - 1].id + 1 : 1;
         newEntry.id = newId;
+        newEntry.promt_id = GetCurrentPromptIndex();
 
         if (useLinkedDatabase)
         {
@@ -118,7 +122,7 @@ public class DatabaseManager : MonoBehaviour
 
     public Entry[] GetAllEntries()
     {
-        return testEntryDatabase.entries;
+        return GetCurrentPromptEntries();
     }
 
     private bool IsLinkedDatabaseAvailable()
@@ -171,6 +175,11 @@ public class DatabaseManager : MonoBehaviour
             return;
         }
 
+        if (remoteEntry.promt_id != GetCurrentPromptIndex())
+        {
+            return;
+        }
+
         AddOrReplaceEntryInDataset(remoteEntry);
         RemoteEntryLoaded?.Invoke(remoteEntry);
     }
@@ -194,5 +203,73 @@ public class DatabaseManager : MonoBehaviour
         }
 
         AddEntryToTestDataset(newEntry);
+    }
+
+    private Entry[] GetCurrentPromptEntries()
+    {
+        if (gameManager == null)
+        {
+            gameManager = FindFirstObjectByType<GameManager>();
+        }
+
+        if (testEntryDatabase == null)
+        {
+            return Array.Empty<Entry>();
+        }
+
+        int currentPromptIndex = GetCurrentPromptIndex();
+        Entry[] allEntries = testEntryDatabase.entries ?? Array.Empty<Entry>();
+        int matchCount = 0;
+
+        for (int i = 0; i < allEntries.Length; i++)
+        {
+            if (allEntries[i] != null && allEntries[i].promt_id == currentPromptIndex)
+            {
+                matchCount++;
+            }
+        }
+
+        Entry[] currentPromptEntries = new Entry[matchCount];
+        int writeIndex = 0;
+        for (int i = 0; i < allEntries.Length; i++)
+        {
+            if (allEntries[i] != null && allEntries[i].promt_id == currentPromptIndex)
+            {
+                currentPromptEntries[writeIndex++] = allEntries[i];
+            }
+        }
+
+        return currentPromptEntries;
+    }
+
+    private int GetCurrentPromptIndex()
+    {
+        if (gameManager == null)
+        {
+            gameManager = FindFirstObjectByType<GameManager>();
+        }
+
+        return gameManager != null ? gameManager.CurrentPromptIndex : 0;
+    }
+
+    private string ResolveLocalCacheDirectory()
+    {
+        string promptPath = gameManager != null && gameManager.CurrentPromptData != null
+            ? gameManager.CurrentPromptData.DatabasePath
+            : null;
+
+        if (string.IsNullOrWhiteSpace(promptPath))
+        {
+            return Path.Combine(Application.dataPath, "Data");
+        }
+
+        string safePromptPath = promptPath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+        return Path.Combine(Application.dataPath, "Data", safePromptPath);
+    }
+
+    private string GetAssetRelativePath(string dataDir, string fileName)
+    {
+        string relativePath = dataDir.Replace(Application.dataPath, "Assets");
+        return Path.Combine(relativePath, fileName).Replace('\\', '/');
     }
 }

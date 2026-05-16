@@ -24,7 +24,6 @@ public class DrawPanel : MonoBehaviour
     [SerializeField] private InputActionReference mousePositionAction;
     private int brushSize = 1;
     [SerializeField] private GameManager gameManager;
-    [SerializeField] private PromptData promptData;
     [SerializeField] private AudioClip selectColorSound;
     [SerializeField] private AudioClip drawSound;
     [SerializeField] private AudioClip clearCanvasSound;
@@ -71,7 +70,7 @@ public class DrawPanel : MonoBehaviour
             }
         }
 
-        currentColor = promptData.ColorPalette[0];
+        currentColor = gameManager.CurrentPromptData.ColorPalette[0];
         //StartEntry("Describe the place you recalled.");
     }
 

@@ -2,14 +2,15 @@ using UnityEngine;
 
 public class ColorPalette : MonoBehaviour
 {
-    [SerializeField] private PromptData promptData;
+    private GameManager gameManager;
     [SerializeField] private ColorButton[] colorButtons;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        gameManager = FindFirstObjectByType<GameManager>();
         colorButtons = GetComponentsInChildren<ColorButton>();
         for (int i = 0; i < colorButtons.Length; i++)        {
-            colorButtons[i].Color = promptData.ColorPalette[i];
+            colorButtons[i].Color = gameManager.CurrentPromptData.ColorPalette[i];
         }
         
     }

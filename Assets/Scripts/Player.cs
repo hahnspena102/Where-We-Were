@@ -6,6 +6,9 @@ public class Player : MonoBehaviour
     [SerializeField]private Rigidbody rb;
     public InputActionReference moveAction;
     public InputActionReference jumpAction;
+    public InputActionReference prompt1Action;
+    public InputActionReference prompt2Action;
+    public InputActionReference prompt3Action;
     public InputActionReference clickAction;
     [SerializeField] private float speed = 2f;
 
@@ -13,6 +16,7 @@ public class Player : MonoBehaviour
     [SerializeField] private Transform hoverProjector;
 
     [SerializeField] private Entry currentHoverEntry;
+    [SerializeField] private PlayerData playerData;
     private Vector2 moveInput;
     private float holdTime;
     private float holdDuration = 1f;
@@ -34,6 +38,20 @@ public class Player : MonoBehaviour
    void Update()
     {
         moveInput = moveAction.action.ReadValue<Vector2>();
+
+        if (prompt1Action.action.WasPressedThisFrame())
+        {
+            playerData.PromptIndex = 0;
+            gameManager.RestartGame();
+        } else if (prompt2Action.action.WasPressedThisFrame())
+        {
+            playerData.PromptIndex = 1;
+            gameManager.RestartGame();
+        } else if (prompt3Action.action.WasPressedThisFrame())
+        {
+            playerData.PromptIndex = 2;
+            gameManager.RestartGame();
+        }
 
         if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero && gameManager.CurrentState == GameState.Prompting) 
         {
