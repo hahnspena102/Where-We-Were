@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: AfterFlowerScript
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   lines:
-  - A star can represent feeling alone in space, but when you see many stars together
-    on the map, it shows there are others who feel the same. This allows our users
-    to know they aren't alone.
+  - "A flower cannot bloom alone, its roots rely on the soil its planted in and the
+    safety of its surroundings. The petals you drew represent the people, feelings,
+    and moments that made your place home, even if that wasn\u2019t where you were
+    planted. "
