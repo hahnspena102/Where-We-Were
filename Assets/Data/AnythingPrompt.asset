@@ -17,7 +17,7 @@ MonoBehaviour:
   drawInstruction: Draw that memory!
   promptId: 2
   databasePath: recent
-  afterDrawScript: {fileID: 11400000, guid: 6032c553bafad4942a957b532156a1b6, type: 2}
+  afterDrawScript: {fileID: 11400000, guid: 677317cbf82ec496c9998dfbbead4154, type: 2}
   colorPalette:
   - {r: 1, g: 0.28773582, b: 0.30260134, a: 1}
   - {r: 1, g: 0.84705883, b: 0.24705882, a: 1}
