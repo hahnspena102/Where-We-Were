@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: AnythingPrompt
   m_EditorClassIdentifier: Assembly-CSharp::PromptData
   promptText: Recall a recent memory.
+  typeInstruction: Describe the recent memory.
   drawInstruction: Draw that memory!
   promptId: 2
   databasePath: recent
+  afterDrawScript: {fileID: 11400000, guid: 6032c553bafad4942a957b532156a1b6, type: 2}
   colorPalette:
-  - {r: 1, g: 0.48743218, b: 0.21226418, a: 1}
-  - {r: 0.47318116, g: 0.5471698, b: 0.42070132, a: 1}
-  - {r: 1, g: 0.8423567, b: 0.25, a: 1}
-  - {r: 0.5235849, g: 0.95329267, b: 1, a: 1}
-  - {r: 1, g: 0.6084906, b: 0.86949676, a: 1}
+  - {r: 1, g: 0.28773582, b: 0.30260134, a: 1}
+  - {r: 1, g: 0.84705883, b: 0.24705882, a: 1}
+  - {r: 0.4009434, g: 0.53646, b: 1, a: 1}
+  - {r: 0.32694018, g: 0.8773585, b: 0.47476938, a: 1}
+  - {r: 0.733842, g: 0.4481132, b: 1, a: 1}
+  isOnGround: 0

@@ -29,13 +29,18 @@ public class PromptPanel : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void ResetPanel()
     {
-        
+        hasDisplayedPrompt = false;
+        canvasGroup.alpha = 0;
+        //fill the page
+        panelRect.offsetMin = new Vector2(0, 0);
+        panelRect.offsetMax = new Vector2(0, 0);
     }
 
     public void StartPrompt(string question)
     {
+        ResetPanel();
         StartCoroutine(PromptCoroutine(question));
     }
 

@@ -7,7 +7,7 @@ public class ColorPalette : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
         colorButtons = GetComponentsInChildren<ColorButton>();
         for (int i = 0; i < colorButtons.Length; i++)        {
             colorButtons[i].Color = gameManager.CurrentPromptData.ColorPalette[i];
@@ -19,5 +19,13 @@ public class ColorPalette : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void ResetColors()
+    {
+        for (int i = 0; i < colorButtons.Length; i++)
+        {
+            colorButtons[i].Color = gameManager.CurrentPromptData.ColorPalette[i];
+        }
     }
 }

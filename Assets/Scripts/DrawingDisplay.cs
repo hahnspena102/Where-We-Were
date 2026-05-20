@@ -11,7 +11,7 @@ public class DrawingDisplay : MonoBehaviour
     void Awake()
     {
         rend = GetComponent<Renderer>();
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
     }
 
     void Update()
@@ -21,7 +21,7 @@ public class DrawingDisplay : MonoBehaviour
             rend.material.mainTexture = entry.sprite.texture;
         }
 
-        if (gameManager.CurrentState == GameState.Reviewing)
+        if (gameManager.PlayerData.CurrentGameplayState == GameplayState.Reviewing || gameManager.PlayerData.CurrentGameplayState == GameplayState.Explaining)
         {
             rend.enabled = true;
         }

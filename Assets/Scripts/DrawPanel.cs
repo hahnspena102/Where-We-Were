@@ -48,6 +48,22 @@ public class DrawPanel : MonoBehaviour
         }
     }
 
+    public void ResetPanel()
+    {
+        canvasGroup.alpha = 0;
+        canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
+        promptText.text = "";
+        drawTexture.SetPixels(clearColors);
+        drawTexture.Apply();
+
+        ColorPalette palette = GetComponentInChildren<ColorPalette>();
+        if (palette != null)        {
+            palette.ResetColors();  
+        }
+        currentColor = gameManager.CurrentPromptData.ColorPalette[0];
+    }
+
     void Start()
     {
         canvasGroup = GetComponent<CanvasGroup>();
@@ -56,7 +72,7 @@ public class DrawPanel : MonoBehaviour
         canvasGroup.blocksRaycasts = false;
         panelRect = GetComponent<RectTransform>();
 
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
         InitCanvas();
 
         // Ensure we have an AudioSource at runtime so sounds will play.

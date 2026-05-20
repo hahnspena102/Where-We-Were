@@ -18,13 +18,14 @@ public class HoverProjector : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        player = FindFirstObjectByType<Player>();
+        player = FindAnyObjectByType<Player>();
         canvasGroup = GetComponentInChildren<CanvasGroup>();
         slider = GetComponent<Slider>();
         canvasGroup.alpha = 0;
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
     
     }
+    
 
     // Update is called once per frame
   public Vector3 HoverProject()
@@ -62,6 +63,11 @@ public class HoverProjector : MonoBehaviour
         return Vector3.zero;
     }
 
+    public void ShowHover()
+    {
+        gameObject.SetActive(true);
+    }
+    
     public void HideHover()
     {
         gameObject.SetActive(false);
@@ -83,7 +89,7 @@ public class HoverProjector : MonoBehaviour
 
 
         float holdPercentage = player.GetHoldPercentage();
-        Debug.Log("Hover percentage: " + holdPercentage);
+    
 
         if (holdPercentage >= 1f)
         {

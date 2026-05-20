@@ -12,7 +12,7 @@ public class ColorButton : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        drawPanel = FindFirstObjectByType<DrawPanel>();
+        drawPanel = FindAnyObjectByType<DrawPanel>();
     }
 
     // Update is called once per frame

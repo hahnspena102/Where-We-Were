@@ -24,9 +24,18 @@ public class EntryPanel : MonoBehaviour
         canvasGroup.blocksRaycasts = false;
         panelRect = GetComponent<RectTransform>();
 
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
         //StartCoroutine(PromptCoroutine("Recall a place you felt alone."));
 
+    }
+
+    public void ResetPanel()
+    {
+        canvasGroup.alpha = 0;
+        canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
+        promptText.text = "";
+        answerInputField.text = "";
     }
 
     // Update is called once per frame
@@ -54,13 +63,14 @@ public class EntryPanel : MonoBehaviour
 
     IEnumerator HideEntryCoroutine()
     {
+        canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
         while(canvasGroup.alpha > 0)
         {
             canvasGroup.alpha -= Time.deltaTime / fadeDuration;
             yield return null;
         }
-        canvasGroup.interactable = false;
-        canvasGroup.blocksRaycasts = false;
+
     }
 
     IEnumerator PromptEntry(string question)

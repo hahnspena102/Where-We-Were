@@ -4,7 +4,7 @@ public class ClearButton : MonoBehaviour
 {
     public void OnClearButtonClicked()
     {
-        DrawPanel drawPanel = FindFirstObjectByType<DrawPanel>();
+        DrawPanel drawPanel = FindAnyObjectByType<DrawPanel>();
         if (drawPanel != null)
         {
             drawPanel.ClearCanvas();

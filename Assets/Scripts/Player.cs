@@ -6,9 +6,6 @@ public class Player : MonoBehaviour
     [SerializeField]private Rigidbody rb;
     public InputActionReference moveAction;
     public InputActionReference jumpAction;
-    public InputActionReference prompt1Action;
-    public InputActionReference prompt2Action;
-    public InputActionReference prompt3Action;
     public InputActionReference clickAction;
     [SerializeField] private float speed = 2f;
 
@@ -30,7 +27,7 @@ public class Player : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
         animator = GetComponent<Animator>();
     }
 
@@ -39,21 +36,7 @@ public class Player : MonoBehaviour
     {
         moveInput = moveAction.action.ReadValue<Vector2>();
 
-        if (prompt1Action.action.WasPressedThisFrame())
-        {
-            playerData.PromptIndex = 0;
-            gameManager.RestartGame();
-        } else if (prompt2Action.action.WasPressedThisFrame())
-        {
-            playerData.PromptIndex = 1;
-            gameManager.RestartGame();
-        } else if (prompt3Action.action.WasPressedThisFrame())
-        {
-            playerData.PromptIndex = 2;
-            gameManager.RestartGame();
-        }
-
-        if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero && gameManager.CurrentState == GameState.Prompting) 
+        if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero && gameManager.CurrentState == GameplayState.Prompting) 
         {
             holdTime += Time.deltaTime;
 
@@ -78,11 +61,16 @@ public class Player : MonoBehaviour
           
         }
 
-        animator.SetFloat("speed", moveInput.magnitude);
-        // rotate player facing left or right based on input
-        if (moveInput.x > 0.1f || moveInput.x < -0.1f) {
-            facingDirection = Mathf.Sign(moveInput.x);
+        if (gameManager.CurrentState != GameplayState.Answering && gameManager.CurrentState != GameplayState.Drawing)
+        {
+            animator.SetFloat("speed", moveInput.magnitude);
+            // rotate player facing left or right based on input
+            if (moveInput.x > 0.1f || moveInput.x < -0.1f) {
+                facingDirection = Mathf.Sign(moveInput.x);
+            }
+       
         }
+        
 
         Quaternion targetRotation = Quaternion.Euler(0f, facingDirection < 0f ? 0f : 180f, 0f);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
@@ -91,7 +79,7 @@ public class Player : MonoBehaviour
     }
     void FixedUpdate()
     {
-        if (gameManager.CurrentState == GameState.Answering)
+        if (gameManager.CurrentState == GameplayState.Answering || gameManager.CurrentState == GameplayState.Drawing)
         {
             rb.linearVelocity = Vector3.zero;
             return;
@@ -117,5 +105,31 @@ public class Player : MonoBehaviour
     public float GetHoldPercentage()
     {
         return Mathf.Clamp01(holdTime / holdDuration);
+    }
+
+    public void SelectPrompt1()
+    {
+        SelectPrompt(0);
+    }
+
+    public void SelectPrompt2()
+    {
+        SelectPrompt(1);
+    }
+
+    public void SelectPrompt3()
+    {
+        SelectPrompt(2);
+    }
+
+    private void SelectPrompt(int promptIndex)
+    {
+        if (playerData == null || gameManager == null)
+        {
+            return;
+        }
+
+        playerData.PromptIndex = promptIndex;
+        gameManager.RestartGame();
     }
 }

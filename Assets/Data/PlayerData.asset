@@ -12,4 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d93c378a4b040487d827d5099e3ab85e, type: 3}
   m_Name: PlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
-  promptIndex: 0
+  currentGameState: 1
+  currentGameplayState: 4
+  promptIndex: 2

@@ -2,6 +2,7 @@ using FirebaseWebGL.Scripts.FirebaseBridge;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using FullSerializer;
 using UnityEngine;
 
 public class DatabaseLinker : MonoBehaviour
@@ -24,7 +25,7 @@ public class DatabaseLinker : MonoBehaviour
 	}
 
 	[SerializeField] private string databasePath = "demo/hello";
-	[SerializeField] private string entriesPath = "";
+	private string entriesPath = "";
 	[SerializeField] private bool autoReconnectOnReadError = true;
 	[SerializeField] [Min(0)] private int maxReadRetryAttempts = 5;
 	[SerializeField] [Min(0.1f)] private float baseReadRetryDelaySeconds = 1.5f;
@@ -48,7 +49,7 @@ public class DatabaseLinker : MonoBehaviour
 
 	private void Start()
 	{
-		entriesPath = FindFirstObjectByType<GameManager>()?.CurrentPromptData.DatabasePath;
+		
 
 
 		if (!IsRuntimeFirebaseAvailable())
@@ -59,6 +60,59 @@ public class DatabaseLinker : MonoBehaviour
 
 		// FirebaseDatabase expects JSON, so a string must include quotes.
 		EnqueueWrite(databasePath, "\"hello world\"");
+	}
+
+	private void Awake()
+	{
+		// Override any serialized entriesPath in scene YAML with the GameManager's current prompt path.
+		var gm = FindAnyObjectByType<GameManager>();
+		if (gm != null && gm.CurrentPromptData != null && !string.IsNullOrWhiteSpace(gm.CurrentPromptData.DatabasePath))
+		{
+			entriesPath = gm.CurrentPromptData.DatabasePath;
+			Debug.Log($"DatabaseLinker.Awake overriding entriesPath with GameManager.CurrentPromptData.DatabasePath='{entriesPath}'");
+		}
+		else
+		{
+			Debug.Log("DatabaseLinker.Awake: GameManager.CurrentPromptData.DatabasePath not available to override entriesPath.");
+		}
+	}
+
+	private void Update()
+	{
+		// Keep entriesPath in sync with the GameManager's current prompt path.
+		var gm = FindAnyObjectByType<GameManager>();
+		if (gm == null || gm.CurrentPromptData == null)
+		{
+			return;
+		}
+
+		string gmPath = gm.CurrentPromptData.DatabasePath;
+		if (string.IsNullOrWhiteSpace(gmPath))
+		{
+			return;
+		}
+
+		if (entriesPath != gmPath)
+		{
+			string previous = entriesPath;
+			entriesPath = gmPath;
+			Debug.Log($"DatabaseLinker.Update: entriesPath updated to '{entriesPath}' from GameManager (previous '{previous}')");
+
+			if (isListeningForEntries)
+			{
+				Debug.Log("DatabaseLinker.Update: entriesPath changed while listening; restarting listener.");
+				// Stop listening on the previous path and restart for the new path.
+				if (!string.IsNullOrWhiteSpace(previous))
+				{
+					FirebaseDatabase.StopListeningForChildAdded(previous, gameObject.name, nameof(OnChildAddedSuccess), nameof(OnReadError));
+				}
+				isListeningForEntries = false;
+				if (readRequested)
+				{
+					StartListeningForEntries();
+				}
+			}
+		}
 	}
 
 	private void OnDisable()
@@ -146,6 +200,7 @@ public class DatabaseLinker : MonoBehaviour
 		if (string.IsNullOrWhiteSpace(entriesPath))
 		{
 			Debug.LogWarning("Skipped Firebase read because entries path is not configured.");
+			Debug.Log($"ReadEntriesFromDatabase called but entriesPath is empty. Current entriesPath='{entriesPath}'");
 			return;
 		}
 
@@ -154,9 +209,17 @@ public class DatabaseLinker : MonoBehaviour
 			return;
 		}
 
+		Debug.Log($"ReadEntriesFromDatabase called. entriesPath='{entriesPath}', isListeningForEntries={isListeningForEntries}");
 		readRequested = true;
 		currentReadRetryAttempt = 0;
+		FirebaseDatabase.GetJSON(entriesPath, gameObject.name, nameof(OnReadSnapshotSuccess), nameof(OnReadError));
 		StartListeningForEntries();
+	}
+
+	public void SetEntriesPath(string path)
+	{
+		entriesPath = path;
+		Debug.Log($"DatabaseLinker entriesPath set to '{entriesPath}'");
 	}
 
 	public void StopReadingEntriesFromDatabase()
@@ -187,9 +250,11 @@ public class DatabaseLinker : MonoBehaviour
 			return;
 		}
 
+		Debug.Log($"OnChildAddedSuccess received response: {response}");
 		Entry parsedEntry = TryParseEntryFromJson(response);
 		if (parsedEntry != null)
 		{
+			Debug.Log($"Parsed remote entry id={parsedEntry.id} promt_id={parsedEntry.promt_id} position={parsedEntry.position} sprite={(parsedEntry.sprite!=null?"yes":"no")}");
 			EntryLoadedFromDatabase?.Invoke(parsedEntry);
 		}
 	}
@@ -197,6 +262,78 @@ public class DatabaseLinker : MonoBehaviour
 	public void OnReadSuccess(string response)
 	{
 		Debug.Log($"Read/listen callback from Firebase at '{entriesPath}'. Response: {response}");
+	}
+
+	public void OnReadSnapshotSuccess(string response)
+	{
+		if (string.IsNullOrWhiteSpace(response) || response == "null")
+		{
+			Debug.Log($"OnReadSnapshotSuccess received empty response for '{entriesPath}'.");
+			return;
+		}
+
+		Debug.Log($"OnReadSnapshotSuccess received snapshot for '{entriesPath}': {response}");
+
+		try
+		{
+			fsData parsedData = fsJsonParser.Parse(response);
+			if (parsedData == null || parsedData.IsNull)
+			{
+				Debug.LogWarning($"OnReadSnapshotSuccess parsed null data for '{entriesPath}'.");
+				return;
+			}
+
+			if (parsedData.IsDictionary)
+			{
+				Dictionary<string, fsData> children = parsedData.AsDictionary;
+				Debug.Log($"Snapshot for '{entriesPath}' contained {children.Count} child nodes.");
+
+				foreach (KeyValuePair<string, fsData> child in children)
+				{
+					if (child.Value == null || child.Value.IsNull)
+					{
+						continue;
+					}
+
+					Entry parsedEntry = TryParseEntryFromJson(fsJsonPrinter.CompressedJson(child.Value));
+					if (parsedEntry != null)
+					{
+						Debug.Log($"Snapshot entry parsed from '{entriesPath}/{child.Key}' -> id={parsedEntry.id} promt_id={parsedEntry.promt_id}");
+						EntryLoadedFromDatabase?.Invoke(parsedEntry);
+					}
+				}
+				return;
+			}
+
+			if (parsedData.IsList)
+			{
+				List<fsData> children = parsedData.AsList;
+				Debug.Log($"Snapshot for '{entriesPath}' contained a list with {children.Count} items.");
+
+				for (int i = 0; i < children.Count; i++)
+				{
+					fsData childData = children[i];
+					if (childData == null || childData.IsNull)
+					{
+						continue;
+					}
+
+					Entry parsedEntry = TryParseEntryFromJson(fsJsonPrinter.CompressedJson(childData));
+					if (parsedEntry != null)
+					{
+						Debug.Log($"Snapshot entry parsed from '{entriesPath}[{i}]' -> id={parsedEntry.id} promt_id={parsedEntry.promt_id}");
+						EntryLoadedFromDatabase?.Invoke(parsedEntry);
+					}
+				}
+				return;
+			}
+
+			Debug.LogWarning($"Snapshot at '{entriesPath}' was neither an object nor a list.");
+		}
+		catch (Exception ex)
+		{
+			Debug.LogWarning($"Failed parsing Firebase snapshot at '{entriesPath}'. {ex.Message}");
+		}
 	}
 
 	public void OnReadError(string error)
@@ -274,11 +411,14 @@ public class DatabaseLinker : MonoBehaviour
 
 	private void StartListeningForEntries()
 	{
+		Debug.Log($"StartListeningForEntries invoked. entriesPath='{entriesPath}', readRequested={readRequested}, isListeningForEntries={isListeningForEntries}");
+
 		if (!readRequested || isListeningForEntries)
 		{
 			return;
 		}
 
+		Debug.Log($"Beginning Firebase ListenForChildAdded on '{entriesPath}'");
 		FirebaseDatabase.ListenForChildAdded(entriesPath, gameObject.name, nameof(OnChildAddedSuccess), nameof(OnReadError));
 		isListeningForEntries = true;
 	}
@@ -299,12 +439,15 @@ public class DatabaseLinker : MonoBehaviour
 				return null;
 			}
 
+			Debug.Log($"TryParseEntryFromJson payload id={payload.id} promt_id={payload.promt_id} hasSpriteBase64={(string.IsNullOrWhiteSpace(payload.spriteBase64)?"no":"yes")}");
+
 			Sprite sprite = null;
 			if (!string.IsNullOrWhiteSpace(payload.spriteBase64))
 			{
 				byte[] bytes = Convert.FromBase64String(payload.spriteBase64);
 				Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
 				texture.LoadImage(bytes);
+				Debug.Log($"Loaded texture from base64: {texture.width}x{texture.height}");
 				sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
 			}
 

@@ -13,12 +13,15 @@ MonoBehaviour:
   m_Name: FlowerPrompt
   m_EditorClassIdentifier: Assembly-CSharp::PromptData
   promptText: Recall a place that felt like home.
+  typeInstruction: Share why the place feels like home.
   drawInstruction: Draw a flower!
   promptId: 1
   databasePath: flower
+  afterDrawScript: {fileID: 11400000, guid: 6032c553bafad4942a957b532156a1b6, type: 2}
   colorPalette:
   - {r: 1, g: 0.48743218, b: 0.21226418, a: 1}
   - {r: 1, g: 0.4764151, b: 0.8089577, a: 1}
   - {r: 1, g: 0.8423567, b: 0.25, a: 1}
   - {r: 0.8091151, g: 0.5235849, b: 1, a: 1}
   - {r: 0.36445355, g: 0.8490566, b: 0.39230427, a: 1}
+  isOnGround: 1

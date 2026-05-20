@@ -17,14 +17,14 @@ public class ReviewPanel : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = FindFirstObjectByType<Player>();
-        gameManager = FindFirstObjectByType<GameManager>();
+        player = FindAnyObjectByType<Player>();
+        gameManager = FindAnyObjectByType<GameManager>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (gameManager.CurrentState != GameState.Reviewing)
+        if (gameManager.CurrentState != GameplayState.Reviewing)
         {
             canvasGroup.alpha = 0f;
             canvasGroup.interactable = false;

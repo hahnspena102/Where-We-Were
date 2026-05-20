@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.IO;
 using System;
+using System.Collections.Generic;
 
 public class DatabaseManager : MonoBehaviour
 {
@@ -16,31 +17,29 @@ public class DatabaseManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        gameManager = FindFirstObjectByType<GameManager>();
+        gameManager = FindAnyObjectByType<GameManager>();
 
         if (databaseLinker == null)
         {
             databaseLinker = GetComponent<DatabaseLinker>();
         }
 
-        useLinkedDatabase = IsLinkedDatabaseAvailable();
+        useLinkedDatabase = false;
+        TryEnableLinkedDatabase();
 
-        if (useLinkedDatabase)
+        if (!useLinkedDatabase)
         {
-            Debug.Log("Web database available. New entries will be sent to the linked database.");
-            databaseLinker.EntryLoadedFromDatabase += HandleEntryLoadedFromDatabase;
-            databaseLinker.ReadEntriesFromDatabase();
-        }
-        else
-        {
-            Debug.Log("Linked web database unavailable in this runtime/configuration. Falling back to the test dataset.");
+            Debug.Log("Linked web database not ready yet. Waiting for the current prompt path before reading remote data.");
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (!useLinkedDatabase)
+        {
+            TryEnableLinkedDatabase();
+        }
     }
 
     private void OnDestroy()
@@ -148,6 +147,36 @@ public class DatabaseManager : MonoBehaviour
         return isRuntimeAvailable;
     }
 
+    private void TryEnableLinkedDatabase()
+    {
+        if (useLinkedDatabase)
+        {
+            return;
+        }
+
+        if (databaseLinker == null)
+        {
+            return;
+        }
+
+        if (!databaseLinker.IsRuntimeFirebaseAvailable())
+        {
+            return;
+        }
+
+        if (!databaseLinker.HasDatabasePathConfigured())
+        {
+            return;
+        }
+
+        useLinkedDatabase = true;
+        Debug.Log("Web database is ready. New entries will be sent to the linked database.");
+
+        databaseLinker.EntryLoadedFromDatabase -= HandleEntryLoadedFromDatabase;
+        databaseLinker.EntryLoadedFromDatabase += HandleEntryLoadedFromDatabase;
+        databaseLinker.ReadEntriesFromDatabase();
+    }
+
     private void AddEntryToTestDataset(Entry newEntry)
     {
         if (testEntryDatabase == null)
@@ -175,13 +204,72 @@ public class DatabaseManager : MonoBehaviour
             return;
         }
 
-        if (remoteEntry.promt_id != GetCurrentPromptIndex())
+        Debug.Log($"DatabaseManager.HandleEntryLoadedFromDatabase: id={remoteEntry.id} promt_id={remoteEntry.promt_id} position={remoteEntry.position} sprite={(remoteEntry.sprite!=null?"yes":"no")}");
+
+        // Always add/replace in the local dataset. Let listeners decide whether to spawn.
+        AddOrReplaceEntryInDataset(remoteEntry);
+        RemoteEntryLoaded?.Invoke(remoteEntry);
+    }
+
+    // Request a refresh from the linked database. For local test dataset this is a no-op.
+    public void RefreshEntries()
+    {
+        TryEnableLinkedDatabase();
+
+        if (useLinkedDatabase && databaseLinker != null)
+        {
+            // Ensure the databaseLinker is listening to the current prompt's entries path
+            string promptPath = null;
+            if (gameManager != null)
+            {
+                int promptIndex = gameManager.CurrentPromptIndex;
+                PromptData[] promptDatas = gameManager.PromptDatas;
+                if (promptDatas != null && promptIndex >= 0 && promptIndex < promptDatas.Length && promptDatas[promptIndex] != null)
+                {
+                    promptPath = promptDatas[promptIndex].DatabasePath;
+                }
+                else if (gameManager.CurrentPromptData != null)
+                {
+                    promptPath = gameManager.CurrentPromptData.DatabasePath;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(promptPath))
+            {
+                databaseLinker.SetEntriesPath(promptPath);
+                databaseLinker.ReadEntriesFromDatabase();
+            }
+            else
+            {
+                Debug.LogWarning("RefreshEntries: prompt path not configured, skipping ReadEntriesFromDatabase().");
+            }
+        }
+    }
+
+    public void ClearCachedEntriesForCurrentPrompt()
+    {
+        if (testEntryDatabase == null)
         {
             return;
         }
 
-        AddOrReplaceEntryInDataset(remoteEntry);
-        RemoteEntryLoaded?.Invoke(remoteEntry);
+        int currentPromptIndex = GetCurrentPromptIndex();
+        Entry[] existingEntries = testEntryDatabase.entries ?? Array.Empty<Entry>();
+        List<Entry> retainedEntries = new List<Entry>(existingEntries.Length);
+
+        for (int i = 0; i < existingEntries.Length; i++)
+        {
+            Entry entry = existingEntries[i];
+            if (entry == null || entry.promt_id != currentPromptIndex)
+            {
+                continue;
+            }
+
+            retainedEntries.Add(entry);
+        }
+
+        testEntryDatabase.entries = retainedEntries.ToArray();
+        Debug.Log($"Cleared cached entries for prompt {currentPromptIndex}; retained {retainedEntries.Count} entries.");
     }
 
     private void AddOrReplaceEntryInDataset(Entry newEntry)
@@ -209,7 +297,7 @@ public class DatabaseManager : MonoBehaviour
     {
         if (gameManager == null)
         {
-            gameManager = FindFirstObjectByType<GameManager>();
+            gameManager = FindAnyObjectByType<GameManager>();
         }
 
         if (testEntryDatabase == null)
@@ -246,7 +334,7 @@ public class DatabaseManager : MonoBehaviour
     {
         if (gameManager == null)
         {
-            gameManager = FindFirstObjectByType<GameManager>();
+            gameManager = FindAnyObjectByType<GameManager>();
         }
 
         return gameManager != null ? gameManager.CurrentPromptIndex : 0;
@@ -254,9 +342,22 @@ public class DatabaseManager : MonoBehaviour
 
     private string ResolveLocalCacheDirectory()
     {
-        string promptPath = gameManager != null && gameManager.CurrentPromptData != null
-            ? gameManager.CurrentPromptData.DatabasePath
-            : null;
+        string promptPath = null;
+
+        if (gameManager != null)
+        {
+            int promptIndex = gameManager.CurrentPromptIndex;
+            PromptData[] promptDatas = gameManager.PromptDatas;
+
+            if (promptDatas != null && promptIndex >= 0 && promptIndex < promptDatas.Length && promptDatas[promptIndex] != null)
+            {
+                promptPath = promptDatas[promptIndex].DatabasePath;
+            }
+            else if (gameManager.CurrentPromptData != null)
+            {
+                promptPath = gameManager.CurrentPromptData.DatabasePath;
+            }
+        }
 
         if (string.IsNullOrWhiteSpace(promptPath))
         {
