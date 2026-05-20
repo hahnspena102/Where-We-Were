@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 2f23c1a33a93d634d92c2ee0d6cbe1e1, type: 2}
+  - {fileID: 2100000, guid: 4a1ac2fe485954d7e9a338310b7e4e5f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -126,3 +126,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4297497ba4a08a44bce69e6741f4cfe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DrawingDisplay
+  entry:
+    id: 0
+    promt_id: 0
+    answer: 
+    sprite: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    dataPosted: 
+  gameManager: {fileID: 0}

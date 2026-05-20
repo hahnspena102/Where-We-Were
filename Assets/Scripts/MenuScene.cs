@@ -11,6 +11,6 @@ public class MenuScene : MonoBehaviour
             Debug.LogError("PlayerData is not assigned in the MenuScene.");
             return;
         }
-        UnityEngine.SceneManagement.SceneManager.LoadScene("CopyScene");
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
     }
 }
