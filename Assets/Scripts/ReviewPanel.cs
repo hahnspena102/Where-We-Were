@@ -19,6 +19,21 @@ public class ReviewPanel : MonoBehaviour
     {
         player = FindAnyObjectByType<Player>();
         gameManager = FindAnyObjectByType<GameManager>();
+
+        if (drawingRenderer != null)
+        {
+            drawingRenderer.raycastTarget = false;
+        }
+
+        if (answerText != null)
+        {
+            answerText.raycastTarget = false;
+        }
+
+        if (entryCanvasGroup != null)
+        {
+            entryCanvasGroup.blocksRaycasts = false;
+        }
     }
 
     // Update is called once per frame
@@ -46,7 +61,7 @@ public class ReviewPanel : MonoBehaviour
         currentEntry = player.CurrentHoverEntry;
         if (currentEntry != null)
         {
-                entryCanvasGroup.alpha = 1f;
+            entryCanvasGroup.alpha = 1f;
             if (currentEntry.sprite != null)
             {
                 drawingRenderer.sprite = currentEntry.sprite;
@@ -56,6 +71,8 @@ public class ReviewPanel : MonoBehaviour
                 drawingRenderer.sprite = null; 
             }
 
+            player.PlayerData.AddEntryRead(currentEntry);
+
             answerText.text = currentEntry.answer;
         }
         else
@@ -63,6 +80,16 @@ public class ReviewPanel : MonoBehaviour
             drawingRenderer.sprite = null;
             answerText.text = string.Empty;
             entryCanvasGroup.alpha = 0f;
+        }
+
+        int numEntriesRead = player.PlayerData.GetNumEntriesReadForPrompt(gameManager.CurrentPromptIndex);
+        if (numEntriesRead >= 3)
+        {
+            nextPromptButton.interactable = true;
+        }
+        else
+        {
+            nextPromptButton.interactable = false;
         }
     }
 

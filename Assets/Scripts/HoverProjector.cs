@@ -45,10 +45,10 @@ public class HoverProjector : MonoBehaviour
             {
                 canvasGroup.alpha = 1;
 
-                transform.position = hit.point + hit.normal + new Vector3(0, hoverOffset, 0);
+                transform.position = hit.point + hit.normal * hoverOffset;
                 transform.rotation = Quaternion.LookRotation(hit.normal);
 
-                return transform.position;
+                return hit.point;
             }
             else
             {

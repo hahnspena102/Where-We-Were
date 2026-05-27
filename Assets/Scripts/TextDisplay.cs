@@ -15,6 +15,7 @@ public class TextDisplay : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI textMeshPro;
     public TextMeshProUGUI enterToContinueText;
+    public CanvasGroup bgGroup;
 
     [Header("Settings")]
     [SerializeField] private float fadeDuration = 0.5f;
@@ -60,7 +61,11 @@ public class TextDisplay : MonoBehaviour
         if (!enterToContinue)
         {
             if (isScriptFinished)
+            {
+                bgGroup.alpha = Mathf.MoveTowards(bgGroup.alpha, 0f, Time.deltaTime / fadeOutDuration);
                 return;
+            }
+
             bool isLineFullyDisplayed = !isAnimatingLine && isWaitingForContinue && textMeshPro.textInfo.characterCount > 0 && textMeshPro.maxVisibleCharacters >= textMeshPro.textInfo.characterCount;
             if (isLineFullyDisplayed)
             {
@@ -79,6 +84,8 @@ public class TextDisplay : MonoBehaviour
                         ShowNextLine();
                     }
                 }
+            } else {
+                bgGroup.alpha = Mathf.MoveTowards(bgGroup.alpha, 1f, Time.deltaTime / fadeDuration);
             }
             return;
         }

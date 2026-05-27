@@ -22,6 +22,7 @@ public class Player : MonoBehaviour
     private float facingDirection = 1f;
 
     public Entry CurrentHoverEntry { get => currentHoverEntry; set => currentHoverEntry = value; }
+    public PlayerData PlayerData { get => playerData; set => playerData = value; }
 
     void Start()
     {   DisableIntersectionColliders();
@@ -50,12 +51,16 @@ public class Player : MonoBehaviour
 
         currentHoverEntry = null;
         Ray ray = cam.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity, ~0, QueryTriggerInteraction.Ignore);
+        System.Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+
+        foreach (RaycastHit hit in hits)
         {
-            DrawingDisplay drawingDisplay = hit.collider.GetComponent<DrawingDisplay>();
+            DrawingDisplay drawingDisplay = hit.collider.GetComponentInParent<DrawingDisplay>();
             if (drawingDisplay != null)
             {
                 currentHoverEntry = drawingDisplay.Entry;
+                break;
             }
         }
 
@@ -75,39 +80,28 @@ public class Player : MonoBehaviour
     }
 
     void FixedUpdate()
-{
-    if (gameManager.CurrentState == GameplayState.Answering)
     {
         if (gameManager.CurrentState == GameplayState.Answering || gameManager.CurrentState == GameplayState.Drawing)
         {
             rb.linearVelocity = Vector3.zero;
             return;
         }
-            Vector3 groundedMovement = new Vector3(moveInput.x, 0f, moveInput.y) * speed;
-            if (OnSlope(out RaycastHit groundHit)) {
-                    groundedMovement = Vector3.ProjectOnPlane(groundedMovement, groundHit.normal);
-                    rb.linearVelocity = groundedMovement;
-        } else {
-                    groundedMovement.y = rb.linearVelocity.y;
-                    rb.linearVelocity = groundedMovement;
-        }
-    }
 
-    rb.AddForce(Vector3.down * 20f, ForceMode.Acceleration);
+        rb.AddForce(Vector3.down * 20f, ForceMode.Acceleration);
 
-        Vector3 slopeMovement = new Vector3(moveInput.x, 0f, moveInput.y) * speed;
+        Vector3 movement = new Vector3(moveInput.x, 0f, moveInput.y) * speed;
 
         if (OnSlope(out RaycastHit slopeHit))
-    {
-            Vector3 slopeMove = Vector3.ProjectOnPlane(slopeMovement, slopeHit.normal);
-        slopeMove.y = Mathf.Min(slopeMove.y, 0f);
-        rb.linearVelocity = new Vector3(slopeMove.x, rb.linearVelocity.y + slopeMove.y, slopeMove.z);
+        {
+            Vector3 slopeMove = Vector3.ProjectOnPlane(movement, slopeHit.normal);
+            slopeMove.y = Mathf.Min(slopeMove.y, 0f);
+            rb.linearVelocity = new Vector3(slopeMove.x, rb.linearVelocity.y + slopeMove.y, slopeMove.z);
+        }
+        else
+        {
+            rb.linearVelocity = new Vector3(movement.x, rb.linearVelocity.y, movement.z);
+        }
     }
-    else
-    {
-            rb.linearVelocity = new Vector3(slopeMovement.x, rb.linearVelocity.y, slopeMovement.z);
-    }
-}
 
     bool OnSlope(out RaycastHit hit)
     {
@@ -155,7 +149,7 @@ public class Player : MonoBehaviour
     {
         // Road Architect intersection objects are tagged/named with "intersection"
         // This finds every mesh collider in the scene on objects with that name
-        MeshCollider[] allMeshColliders = FindObjectsByType<MeshCollider>(FindObjectsSortMode.None);
+        MeshCollider[] allMeshColliders = FindObjectsByType<MeshCollider>();
         
         foreach (MeshCollider col in allMeshColliders)
         {

@@ -36,6 +36,7 @@ public class EntryPanel : MonoBehaviour
         canvasGroup.blocksRaycasts = false;
         promptText.text = "";
         answerInputField.text = "";
+        nextButton.interactable = false;
     }
 
     // Update is called once per frame
@@ -77,6 +78,7 @@ public class EntryPanel : MonoBehaviour
     {
         promptText.text = question;
         canvasGroup.interactable = false;
+        canvasGroup.blocksRaycasts = false;
         while(canvasGroup.alpha < 1)
         {
             canvasGroup.alpha += Time.deltaTime / fadeDuration;
@@ -84,6 +86,9 @@ public class EntryPanel : MonoBehaviour
         }
         canvasGroup.interactable = true;
         canvasGroup.blocksRaycasts = true;
+        answerInputField.interactable = true;
+        answerInputField.ActivateInputField();
+        nextButton.interactable = EnoughTextEntered();
     }
 
     public void NextPage()

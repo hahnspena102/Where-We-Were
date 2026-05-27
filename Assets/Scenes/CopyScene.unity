@@ -26072,7 +26072,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cdd4c2580e0c40e9b271ac95f68791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Building
-  buildingData: {fileID: 0}
+  buildingData: {fileID: 11400000, guid: c4230a358c78a4180bc4a73c71bb2b45, type: 2}
 --- !u!65 &226187989
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -30589,6 +30589,7 @@ MonoBehaviour:
   drawPanel: {fileID: 0}
   introScript: {fileID: 11400000, guid: 12419534eaf7245869a904792d6ed8de, type: 2}
   transitionScript: {fileID: 11400000, guid: 078eef475c85f444fa6575c0d56bd5e5, type: 2}
+  buildingNameCanvasPrefab: {fileID: 4877783143944699723, guid: a7f0c6537525441e9bf5785ba9da6575, type: 3}
 --- !u!82 &257647044
 AudioSource:
   m_ObjectHideFlags: 0
@@ -65856,7 +65857,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cdd4c2580e0c40e9b271ac95f68791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Building
-  buildingData: {fileID: 0}
+  buildingData: {fileID: 11400000, guid: 48bc7bf2071e24f52ad1be30ded35935, type: 2}
 --- !u!65 &561987130
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -92372,7 +92373,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cdd4c2580e0c40e9b271ac95f68791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Building
-  buildingData: {fileID: 0}
+  buildingData: {fileID: 11400000, guid: 17e18192838d34c248e0821f49f29c13, type: 2}
 --- !u!65 &701165120
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -105213,7 +105214,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cdd4c2580e0c40e9b271ac95f68791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Building
-  buildingData: {fileID: 0}
+  buildingData: {fileID: 11400000, guid: 6acf491b50bc34d35899b1b968a0f7d5, type: 2}
 --- !u!65 &821146345
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -179962,7 +179963,7 @@ GameObject:
   - component: {fileID: 1396057022}
   - component: {fileID: 1396057021}
   - component: {fileID: 1396057020}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -212779,7 +212780,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DatabaseLinker
   databasePath: demo/hello
-  entriesPath: entries/prompt_0
   autoReconnectOnReadError: 1
   maxReadRetryAttempts: 5
   baseReadRetryDelaySeconds: 1.5

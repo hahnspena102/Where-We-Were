@@ -30,6 +30,7 @@ public class GameManager : MonoBehaviour
     [SerializeField,ReadOnly] private DrawPanel drawPanel;
     [SerializeField] private ScriptData introScript;
     [SerializeField] private ScriptData transitionScript;
+    [SerializeField] private GameObject buildingNameCanvasPrefab;
     private TextDisplay textDisplay;
     
     
@@ -47,6 +48,7 @@ public class GameManager : MonoBehaviour
     public int CurrentPromptIndex { get => playerData != null ? playerData.PromptIndex : 0; }
     public PromptData[] PromptDatas { get => promptDatas; set => promptDatas = value; }
     public PlayerData PlayerData { get => playerData; set => playerData = value; }
+    public GameObject BuildingNameCanvasPrefab { get => buildingNameCanvasPrefab; set => buildingNameCanvasPrefab = value; }
 
     void Start()
     {
@@ -244,7 +246,8 @@ public class GameManager : MonoBehaviour
                     yOffset = ren.bounds.extents.y;
                 }
 
-                entryPosition = groundHit.point + Vector3.up * yOffset;
+                // Add a small buffer (0.5 units) to prevent clipping into slopes
+                entryPosition = groundHit.point + Vector3.up * (yOffset + 0.5f);
             }
             else
             {
@@ -310,7 +313,10 @@ public class GameManager : MonoBehaviour
         {
             hoverProjector.ShowHover();
             hoverPosition = hoverProjector.HoverProject();
-            
+        }
+        else if (playerData.CurrentGameplayState == GameplayState.Drawing)
+        {
+            hoverProjector.ShowHover();
         }
     }
 

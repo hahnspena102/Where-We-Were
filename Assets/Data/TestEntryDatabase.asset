@@ -28,9 +28,3 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 493638ddc972e4475bea024d1c448e40, type: 3}
     position: {x: 228.51363, y: 5.7159376, z: 246.7724}
     dataPosted: 2026-05-11 15:30:33
-  - id: 3
-    promt_id: 0
-    answer: sd jsandksandksand sadsad
-    sprite: {fileID: 21300000, guid: eb6e58c4a995b44adbe3f38cf2655955, type: 3}
-    position: {x: 277.67368, y: 1.0199871, z: 264.47583}
-    dataPosted: 2026-05-20 14:24:31

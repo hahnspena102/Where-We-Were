@@ -97,7 +97,20 @@ public class DatabaseManager : MonoBehaviour
 
         Debug.Log("Saved PNG to: " + savePath + " | Sprite: " + newEntry.sprite);
     
-        int newId = GetCurrentPromptEntries().Length > 0 ? GetCurrentPromptEntries()[GetCurrentPromptEntries().Length - 1].id + 1 : 1;
+        // Generate globally unique ID by finding max ID across all entries, not just current prompt
+        int newId = 1;
+        if (testEntryDatabase != null && testEntryDatabase.entries != null && testEntryDatabase.entries.Length > 0)
+        {
+            int maxId = 0;
+            for (int i = 0; i < testEntryDatabase.entries.Length; i++)
+            {
+                if (testEntryDatabase.entries[i] != null && testEntryDatabase.entries[i].id > maxId)
+                {
+                    maxId = testEntryDatabase.entries[i].id;
+                }
+            }
+            newId = maxId + 1;
+        }
         newEntry.id = newId;
         newEntry.promt_id = GetCurrentPromptIndex();
 

@@ -3,6 +3,8 @@ using UnityEngine;
 public class DrawingDisplay : MonoBehaviour
 {
     private Renderer rend;
+    private MeshFilter meshFilter;
+    private MeshCollider meshCollider;
     [SerializeField]private Entry entry;
     [SerializeField]private GameManager gameManager;
 
@@ -11,6 +13,19 @@ public class DrawingDisplay : MonoBehaviour
     void Awake()
     {
         rend = GetComponent<Renderer>();
+        meshFilter = GetComponent<MeshFilter>();
+        meshCollider = GetComponent<MeshCollider>();
+        if (meshCollider == null)
+        {
+            meshCollider = gameObject.AddComponent<MeshCollider>();
+        }
+
+        if (meshFilter != null)
+        {
+            meshCollider.sharedMesh = null;
+            meshCollider.sharedMesh = meshFilter.sharedMesh;
+        }
+
         gameManager = FindAnyObjectByType<GameManager>();
     }
 

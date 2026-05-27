@@ -13,5 +13,24 @@ MonoBehaviour:
   m_Name: PlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
   currentGameState: 1
-  currentGameplayState: 4
-  promptIndex: 2
+  currentGameplayState: 5
+  promptIndex: 1
+  entriesRead:
+  - id: 0
+    promt_id: 1
+    answer: 
+    sprite: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    dataPosted: 
+  - id: 0
+    promt_id: 1
+    answer: 
+    sprite: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    dataPosted: 
+  - id: 0
+    promt_id: 1
+    answer: 
+    sprite: {fileID: 0}
+    position: {x: 0, y: 0, z: 0}
+    dataPosted: 
