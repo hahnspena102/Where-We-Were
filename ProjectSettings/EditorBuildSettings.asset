@@ -15,7 +15,7 @@ EditorBuildSettings:
     path: Assets/Scenes/UIScene.unity
     guid: 08bc1a4194e674998a4048be58c4c389
   - enabled: 0
-    path: Assets/Scenes/CopyScene.unity
+    path: Assets/Scenes/Archive/CopyScene.unity
     guid: 8cc9de15bc87e4038a7120c16ac63a3f
   - enabled: 1
     path: Assets/Scenes/TextScene.unity

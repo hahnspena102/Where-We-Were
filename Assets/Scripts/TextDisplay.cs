@@ -146,7 +146,12 @@ public class TextDisplay : MonoBehaviour
                 Debug.Log("Intro script finished. Transitioning to gameplay.");
                 GameManager gameManager = FindAnyObjectByType<GameManager>();
                 if (gameManager != null)            {
-                    gameManager.SwitchGameState(GameState.Gameplay);
+                    if (gameManager.PlayerData.CurrentGameState == GameState.Outro)
+                    {
+                        gameManager.ToReviewOutro();
+                    } else {
+                        gameManager.SwitchGameState(GameState.Gameplay);
+                    }
                 }
             }
             

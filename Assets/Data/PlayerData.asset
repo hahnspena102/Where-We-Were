@@ -12,25 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d93c378a4b040487d827d5099e3ab85e, type: 3}
   m_Name: PlayerData
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
-  currentGameState: 1
-  currentGameplayState: 5
-  promptIndex: 1
-  entriesRead:
-  - id: 0
-    promt_id: 1
-    answer: 
-    sprite: {fileID: 0}
-    position: {x: 0, y: 0, z: 0}
-    dataPosted: 
-  - id: 0
-    promt_id: 1
-    answer: 
-    sprite: {fileID: 0}
-    position: {x: 0, y: 0, z: 0}
-    dataPosted: 
-  - id: 0
-    promt_id: 1
-    answer: 
-    sprite: {fileID: 0}
-    position: {x: 0, y: 0, z: 0}
-    dataPosted: 
+  currentGameState: 0
+  currentGameplayState: 1
+  promptIndex: 0
+  entriesRead: []

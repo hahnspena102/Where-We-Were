@@ -12,19 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9331a2e2c918a49bf86fcc91ecc613d9, type: 3}
   m_Name: TestEntryDatabase
   m_EditorClassIdentifier: Assembly-CSharp::TestEntryDatabase
-  entries:
-  - id: 1
-    promt_id: 0
-    answer: walking from business to cerro vista and up that huge hill sweating to
-      death during spring quarter made me thankful to be in the non-air conditioned
-      four corners of my apt. romauldo i luv you
-    sprite: {fileID: 21300000, guid: e566a95a7766a4e1595bdcbcdbbb6106, type: 3}
-    position: {x: 421.16748, y: 1.0099998, z: 419.70776}
-    dataPosted: 2026-05-11 15:18:55
-  - id: 2
-    promt_id: 0
-    answer: sitting up here with my good friends after a long day of classes felt
-      like home
-    sprite: {fileID: 21300000, guid: 493638ddc972e4475bea024d1c448e40, type: 3}
-    position: {x: 228.51363, y: 5.7159376, z: 246.7724}
-    dataPosted: 2026-05-11 15:30:33
+  entries: []

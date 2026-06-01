@@ -21,7 +21,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private CinemachineCamera introCamera;
     [SerializeField] private CinemachineCamera gameplayCamera;
     [SerializeField] private CinemachineCamera transitionCamera;
-    
+    [SerializeField] private ScriptData outroScript;
+    [SerializeField] private CinemachineCamera dollyCamera;
     [SerializeField, ReadOnly] private PromptData currentPromptData;
     private float elapsedWorldTime;
     
@@ -41,6 +42,7 @@ public class GameManager : MonoBehaviour
     
     private DatabaseManager databaseManager;
     private readonly HashSet<int> displayedEntryIds = new HashSet<int>();
+    private int previousPromptIndex = -1;
 
     public Vector3 HoverPosition { get => hoverPosition; set => hoverPosition = value; }
     public GameplayState CurrentState { get => playerData != null ? playerData.CurrentGameplayState : GameplayState.Exploring; set => playerData.CurrentGameplayState = value; }
@@ -160,8 +162,16 @@ public class GameManager : MonoBehaviour
         }
         else if (newState == GameState.Outro)
         {
+            SoundManager.instance.PlayMusic("space");
+            introCamera.Priority = 10;
+            gameplayCamera.Priority = 0;
 
-            gameplayCamera.Priority = 10;
+             SkyboxBlender skyboxBlender = FindAnyObjectByType<SkyboxBlender>();
+            if (skyboxBlender != null)            {
+                skyboxBlender.StartFade(false);
+            }
+
+            textDisplay.ResetDisplay(outroScript, true);
         }
     }
 
@@ -175,6 +185,12 @@ public class GameManager : MonoBehaviour
 
     void LoadData()
     {
+        if (databaseManager == null)
+        {
+            Debug.LogWarning("LoadData: databaseManager is null — no entries will be loaded.");
+            return;
+        }
+
         Debug.Log($"Loading {databaseManager.GetAllEntries().Length} entries from database.");
         foreach (Entry entry in databaseManager.GetAllEntries())
         {
@@ -408,14 +424,16 @@ public class GameManager : MonoBehaviour
         entryPanel = FindAnyObjectByType<EntryPanel>();
         drawPanel = FindAnyObjectByType<DrawPanel>();
 
+        // Ensure database manager reference is current (scenes may have been reloaded)
+        if (databaseManager == null)
+        {
+            databaseManager = FindAnyObjectByType<DatabaseManager>();
+        }
+
         currentPromptData = promptDatas[playerData.PromptIndex];
         startPrompt = false;
         elapsedWorldTime = 0f;
         playerData.CurrentGameplayState = GameplayState.Exploring;
-
-        
-        // Only delete drawings from the current prompt session, not all entries
-        // DeleteAllDrawingDisplays();
 
         if (databaseManager != null)
         {
@@ -424,13 +442,19 @@ public class GameManager : MonoBehaviour
 
         currentPromptData = promptDatas[playerData.PromptIndex];
 
-        // Remove any existing spawned drawings from the previous prompt
-        DeleteAllDrawingDisplays();
-
-        if (databaseManager != null)
+        // Remove any existing spawned drawings from the previous prompt (only)
+        if (previousPromptIndex >= 0)
         {
-            databaseManager.ClearCachedEntriesForCurrentPrompt();
+            DeleteDrawingDisplaysForPrompt(previousPromptIndex);
+            previousPromptIndex = -1;
         }
+        else
+        {
+            // If no previous prompt recorded, avoid deleting everything — keep existing displays
+        }
+
+        // Do not clear cached entries here; keep local dataset intact.
+        // databaseManager.ClearCachedEntriesForCurrentPrompt();
 
         if (databaseManager != null)
         {
@@ -472,18 +496,45 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void DeleteAllDrawingDisplays()
+    // Unload (hide) displays for a specific prompt without clearing cached data.
+    public void DeleteDrawingDisplaysForPrompt(int promptIndex)
     {
-        foreach (DrawingDisplay dd in FindObjectsByType<DrawingDisplay>())
+        // Include inactive objects so we can reliably unload any displays for the prompt.
+        DrawingDisplay[] all = FindObjectsOfType<DrawingDisplay>(true);
+        foreach (DrawingDisplay dd in all)
         {
-            Destroy(dd.gameObject);
+            if (dd == null) continue;
+            Entry e = dd.Entry;
+            if (e != null && e.promt_id == promptIndex)
+            {
+                // Keep the cached entry IDs so we don't duplicate on reload.
+                // Just disable the GameObject to hide it from the scene.
+                dd.gameObject.SetActive(false);
+            }
         }
-        displayedEntryIds.Clear();
+    }
+
+    // Re-enable (show) displays for a specific prompt if they were previously unloaded.
+    public void ShowDrawingDisplaysForPrompt(int promptIndex)
+    {
+        // Include inactive objects to find previously-disabled displays
+        DrawingDisplay[] all = FindObjectsOfType<DrawingDisplay>(true);
+        foreach (DrawingDisplay dd in all)
+        {
+            if (dd == null) continue;
+            Entry e = dd.Entry;
+            if (e != null && e.promt_id == promptIndex)
+            {
+                dd.gameObject.SetActive(true);
+            }
+        }
     }
 
     public void NextPrompt()
     {
+        int oldIndex = playerData.PromptIndex;
         playerData.PromptIndex = (playerData.PromptIndex + 1) % promptDatas.Length;
+        previousPromptIndex = oldIndex;
         currentPromptData = promptDatas[playerData.PromptIndex];
         if (playerData.PromptIndex >= promptDatas.Length)
         {
@@ -506,6 +557,86 @@ public class GameManager : MonoBehaviour
         RestartGame();
     }
 
+    public void EndGame()
+    {
+       playerData.CurrentGameState = GameState.Outro;
+       SwitchGameState(GameState.Outro);
+
+
+    }
+
+    public void ReviewPrompt(int promptIndex)
+    {
+        if (promptIndex < 0 || promptIndex >= promptDatas.Length)
+        {
+            Debug.LogWarning($"Invalid prompt index {promptIndex} for review");
+            return;
+        }
+        // record the old prompt so we can remove only its displays
+        previousPromptIndex = playerData.PromptIndex;
+
+        // switch to the new prompt
+        playerData.PromptIndex = promptIndex;
+        currentPromptData = promptDatas[promptIndex];
+
+        // Ensure we have a database manager reference
+        if (databaseManager == null)
+        {
+            databaseManager = FindAnyObjectByType<DatabaseManager>();
+        }
+
+        // Remove displays only for the previous prompt
+        if (previousPromptIndex >= 0)
+        {
+            DeleteDrawingDisplaysForPrompt(previousPromptIndex);
+        }
+
+        // Refresh database entries for the newly selected prompt.
+        // Do not clear cached entries here; keep local dataset intact.
+        // databaseManager.ClearCachedEntriesForCurrentPrompt();
+
+        // Start async reload: allow linked database to fetch remote entries before loading.
+        StartCoroutine(ReloadEntriesCoroutine());
+
+        // Enter reviewing gameplay state and set cameras/UI as appropriate
+        playerData.CurrentGameplayState = GameplayState.Reviewing;
+        ToReviewOutro();
+    }
+
+    public void ToReviewOutro() {
+            introCamera.Priority = 0;
+            gameplayCamera.Priority = 10;
+            SkyboxBlender skyboxBlender = FindAnyObjectByType<SkyboxBlender>();
+            playerData.CurrentGameplayState = GameplayState.Reviewing;
+            playerData.CurrentGameState = GameState.Outro;
+            if (skyboxBlender != null) {
+                skyboxBlender.StartFade();
+
+            }
+            
+    }
+
+    IEnumerator ReloadEntriesCoroutine()
+    {
+        if (databaseManager == null)
+        {
+            databaseManager = FindAnyObjectByType<DatabaseManager>();
+        }
+
+        // Show any existing, previously-unloaded displays for this prompt immediately
+        ShowDrawingDisplaysForPrompt(CurrentPromptIndex);
+
+        if (databaseManager != null)
+        {
+            databaseManager.RefreshEntries();
+        }
+
+        // Wait briefly for remote reads to populate dataset and fire RemoteEntryLoaded events
+        yield return new WaitForSeconds(0.5f);
+
+        // Spawn any entries that are present in the dataset but not yet displayed
+        LoadData();
+    }
     
 
   

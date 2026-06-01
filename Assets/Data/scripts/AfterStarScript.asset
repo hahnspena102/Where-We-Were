@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: AfterStarScript
   m_EditorClassIdentifier: Assembly-CSharp::DialogueData
   lines:
-  - A star can represent feeling alone in space, but when you see many stars together
-    on the map, it shows there are others who feel the same. This allows our users
-    to know they aren't alone.
+  - "The universe is ever so vast. Sometimes, it feels like you\u2019re a lonely
+    star with nothing else around you. But when you take the moment to look around
+    you, you begin to see that the universe is bright with millions of stars and
+    you learn that you aren\u2019t so alone."

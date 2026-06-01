@@ -7,7 +7,10 @@ public class Player : MonoBehaviour
     public InputActionReference moveAction;
     public InputActionReference jumpAction;
     public InputActionReference clickAction;
+    public InputActionReference reviewAction;
     [SerializeField] private float speed = 2f;
+    [SerializeField] private float jumpForce = 6.5f;
+    [SerializeField] private float fallAcceleration = 45f;
 
     [SerializeField] private Camera cam;
     [SerializeField] private Transform hoverProjector;
@@ -20,6 +23,8 @@ public class Player : MonoBehaviour
     private GameManager gameManager;
     private Animator animator;
     private float facingDirection = 1f;
+    private CapsuleCollider capsuleCollider;
+    private bool jumpRequested;
 
     public Entry CurrentHoverEntry { get => currentHoverEntry; set => currentHoverEntry = value; }
     public PlayerData PlayerData { get => playerData; set => playerData = value; }
@@ -27,12 +32,20 @@ public class Player : MonoBehaviour
     void Start()
     {   DisableIntersectionColliders();
         rb = GetComponent<Rigidbody>();
+        capsuleCollider = GetComponent<CapsuleCollider>();
         gameManager = FindAnyObjectByType<GameManager>();
         animator = GetComponent<Animator>();
     }
 
     void Update()
     {
+        if (playerData.CurrentGameState == GameState.Intro)
+        {
+            if (reviewAction.action.WasPressedThisFrame())
+            {
+                gameManager.ToReviewOutro();
+            }
+        }
         moveInput = moveAction.action.ReadValue<Vector2>();
 
         if (clickAction.action.IsPressed() && gameManager.HoverPosition != Vector3.zero && gameManager.CurrentState == GameplayState.Prompting) 
@@ -71,8 +84,16 @@ public class Player : MonoBehaviour
             if (moveInput.x > 0.1f || moveInput.x < -0.1f) {
                 facingDirection = Mathf.Sign(moveInput.x);
             }
+
+            // jump
+            if (jumpAction != null && jumpAction.action.WasPressedThisFrame())
+            {
+                jumpRequested = true;
+            }
        
         }
+
+        
         
 
         Quaternion targetRotation = Quaternion.Euler(0f, facingDirection < 0f ? 0f : 180f, 0f);
@@ -84,10 +105,32 @@ public class Player : MonoBehaviour
         if (gameManager.CurrentState == GameplayState.Answering || gameManager.CurrentState == GameplayState.Drawing)
         {
             rb.linearVelocity = Vector3.zero;
+   
+            jumpRequested = false;
             return;
         }
 
-        rb.AddForce(Vector3.down * 20f, ForceMode.Acceleration);
+        float gravityStrength = fallAcceleration;
+        if (rb.linearVelocity.y < 0f)
+        {
+            gravityStrength *= 1.35f;
+        }
+
+        rb.AddForce(Vector3.down * gravityStrength, ForceMode.Acceleration);
+
+        if (jumpRequested)
+        {
+            if (IsGrounded())
+            {
+                Vector3 velocity = rb.linearVelocity;
+                velocity.y = 0f;
+                rb.linearVelocity = velocity;
+                animator.SetTrigger("jump");
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+            }
+
+            jumpRequested = false;
+        }
 
         Vector3 movement = new Vector3(moveInput.x, 0f, moveInput.y) * speed;
 
@@ -147,7 +190,7 @@ public class Player : MonoBehaviour
     }
     void DisableIntersectionColliders() 
     {
-        // Road Architect intersection objects are tagged/named with "intersection"
+        // Road Architect intersection obzjects are tagged/named with "intersection"
         // This finds every mesh collider in the scene on objects with that name
         MeshCollider[] allMeshColliders = FindObjectsByType<MeshCollider>();
         
@@ -159,5 +202,19 @@ public class Player : MonoBehaviour
             }
         }
 
+    }
+
+    bool IsGrounded()
+    {
+        if (capsuleCollider == null)
+        {
+            return Physics.Raycast(transform.position + Vector3.up * 0.1f, Vector3.down, 0.2f);
+        }
+
+        Bounds bounds = capsuleCollider.bounds;
+        float rayLength = bounds.extents.y + 0.1f;
+        Vector3 origin = bounds.center;
+
+        return Physics.Raycast(origin, Vector3.down, rayLength, ~0, QueryTriggerInteraction.Ignore);
     }
 }

@@ -10,6 +10,7 @@ public class HoverProjector : MonoBehaviour
     [SerializeField] private AudioClip chargeSound;
     [SerializeField]private AudioClip finishSound;
 
+    private Canvas canvas;
     private CanvasGroup canvasGroup;
     private Slider slider;
     private Player player;
@@ -19,8 +20,16 @@ public class HoverProjector : MonoBehaviour
     void Start()
     {
         player = FindAnyObjectByType<Player>();
+        canvas = GetComponentInChildren<Canvas>();
         canvasGroup = GetComponentInChildren<CanvasGroup>();
         slider = GetComponent<Slider>();
+
+        if (canvas != null)
+        {
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 5000;
+        }
+
         canvasGroup.alpha = 0;
         gameManager = FindAnyObjectByType<GameManager>();
     
@@ -45,7 +54,7 @@ public class HoverProjector : MonoBehaviour
             {
                 canvasGroup.alpha = 1;
 
-                transform.position = hit.point + hit.normal * hoverOffset;
+                transform.position = hit.point + hit.normal * (hoverOffset + 0.3f);
                 transform.rotation = Quaternion.LookRotation(hit.normal);
 
                 return hit.point;
