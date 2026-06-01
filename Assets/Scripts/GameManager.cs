@@ -72,7 +72,7 @@ public class GameManager : MonoBehaviour
     {
         if (databaseManager != null)
         {
-            databaseManager.RemoteEntryLoaded -= SpawnEntryDisplay;
+            databaseManager.RemoteEntryLoaded -= OnRemoteEntryLoaded;
         }
     }
 
@@ -205,7 +205,7 @@ public class GameManager : MonoBehaviour
   
     }
 
-    private void SpawnEntryDisplay(Entry entry)
+    private void SpawnEntryDisplay(Entry entry, bool ignorePromptFilter = false)
     {
         if (entry == null)
         {
@@ -215,17 +215,64 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"SpawnEntryDisplay called for entry {entry.id} promt_id={entry.promt_id} currentPrompt={CurrentPromptIndex}");
 
-        // Only spawn entries that belong to the current prompt index
-        if (entry.promt_id != CurrentPromptIndex)
+        // Only spawn entries that belong to the current prompt index unless caller requests otherwise
+        if (!ignorePromptFilter && entry.promt_id != CurrentPromptIndex)
         {
             Debug.Log($"Skipping entry {entry.id} for prompt {entry.promt_id} (current prompt {CurrentPromptIndex})");
             return;
         }
 
-        if (entry.id > 0 && displayedEntryIds.Contains(entry.id))
+        // If an instance for this entry ID already exists in the scene (active or inactive), reuse it.
+        if (entry.id > 0)
         {
-            Debug.Log($"Entry {entry.id} already displayed, skipping");
-            return;
+            DrawingDisplay[] allDisplays = FindObjectsOfType<DrawingDisplay>(true);
+            foreach (DrawingDisplay existing in allDisplays)
+            {
+                if (existing == null || existing.Entry == null) continue;
+                // Only reuse an existing display if it belongs to the same prompt
+                if (existing.Entry.id == entry.id && existing.Entry.promt_id == entry.promt_id)
+                {
+                    // Re-use the existing display: update entry reference, sprite and position, and ensure it's active
+                    existing.Entry = entry;
+                    SpriteRenderer existingSr = existing.GetComponent<SpriteRenderer>();
+                    if (existingSr != null)
+                    {
+                        existingSr.sprite = entry.sprite;
+                    }
+
+                    // Recompute position similarly to spawning logic below
+                    Vector3 reusedPosition;
+                    if (currentPromptData != null && currentPromptData.IsOnGround)
+                    {
+                        if (Physics.Raycast(entry.position + Vector3.up * 1f, Vector3.down, out RaycastHit groundHit, 10f))
+                        {
+                            float yOffset = 0f;
+                            Renderer ren = existingSr != null ? (Renderer)existingSr : existing.GetComponent<Renderer>();
+                            if (ren != null) yOffset = ren.bounds.extents.y;
+                            reusedPosition = groundHit.point + Vector3.up * (yOffset + 0.5f);
+                        }
+                        else
+                        {
+                            reusedPosition = entry.position;
+                        }
+                    }
+                    else
+                    {
+                        reusedPosition = entry.position + new Vector3(0, UnityEngine.Random.Range(5f, 12f), 0);
+                    }
+
+                    existing.transform.position = reusedPosition;
+                    existing.gameObject.SetActive(true);
+
+                    if (entry.id > 0)
+                    {
+                        displayedEntryIds.Add(entry.id);
+                    }
+
+                    Debug.Log($"Reused existing display for entry {entry.id}");
+                    return;
+                }
+            }
         }
 
         GameObject entryGO = Instantiate(drawingDisplayPrefab, entry.position, Quaternion.identity);
@@ -289,6 +336,47 @@ public class GameManager : MonoBehaviour
         }
 
         Debug.Log($"Spawned entry ID {entry.id} at position {entry.position}, sprite is {(sr != null && sr.sprite != null ? "set" : "null")}");
+    }
+
+    // Spawn or re-enable displays for all entries across prompts
+    public void ShowAllEntries()
+    {
+        // Re-enable any existing disabled drawing displays first
+        DrawingDisplay[] existing = FindObjectsOfType<DrawingDisplay>(true);
+        foreach (DrawingDisplay dd in existing)
+        {
+            if (dd == null) continue;
+            dd.gameObject.SetActive(true);
+        }
+
+        if (databaseManager == null)
+        {
+            databaseManager = FindAnyObjectByType<DatabaseManager>();
+        }
+
+        if (databaseManager == null) return;
+
+        // Ensure we have the latest entries from remote
+        databaseManager.RefreshEntries();
+
+        // Try to spawn entries via public API first (may be filtered to current prompt)
+        Entry[] entries = databaseManager.GetAllEntries();
+        // If no results returned, try the raw test dataset (unfiltered)
+        if ((entries == null || entries.Length == 0) && databaseManager.testEntryDatabase != null && databaseManager.testEntryDatabase.entries != null)
+        {
+            entries = databaseManager.testEntryDatabase.entries;
+        }
+
+        if (entries == null) return;
+
+        Debug.Log($"ShowAllEntries: preparing to spawn {entries.Length} entries (currentPrompt={CurrentPromptIndex})");
+
+        // Spawn any entries not yet displayed, ignoring prompt filtering
+        foreach (Entry entry in entries)
+        {
+            if (entry == null) continue;
+            SpawnEntryDisplay(entry, true);
+        }
     }
 
    
@@ -437,7 +525,7 @@ public class GameManager : MonoBehaviour
 
         if (databaseManager != null)
         {
-            databaseManager.RemoteEntryLoaded += SpawnEntryDisplay;
+            databaseManager.RemoteEntryLoaded += OnRemoteEntryLoaded;
         }
 
         currentPromptData = promptDatas[playerData.PromptIndex];
@@ -609,6 +697,7 @@ public class GameManager : MonoBehaviour
             SkyboxBlender skyboxBlender = FindAnyObjectByType<SkyboxBlender>();
             playerData.CurrentGameplayState = GameplayState.Reviewing;
             playerData.CurrentGameState = GameState.Outro;
+            playerData.PromptIndex = GameManager.PromptDatas.Length - 1; // Set to last prompt which is the review outro
             if (skyboxBlender != null) {
                 skyboxBlender.StartFade();
 
@@ -636,6 +725,11 @@ public class GameManager : MonoBehaviour
 
         // Spawn any entries that are present in the dataset but not yet displayed
         LoadData();
+    }
+
+    private void OnRemoteEntryLoaded(Entry entry)
+    {
+        SpawnEntryDisplay(entry);
     }
     
 

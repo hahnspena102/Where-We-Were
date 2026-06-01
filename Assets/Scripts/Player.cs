@@ -44,6 +44,8 @@ public class Player : MonoBehaviour
             if (reviewAction.action.WasPressedThisFrame())
             {
                 gameManager.ToReviewOutro();
+                // If the player used the review cheat, show entries from all prompts
+                gameManager.ShowAllEntries();
             }
         }
         moveInput = moveAction.action.ReadValue<Vector2>();
