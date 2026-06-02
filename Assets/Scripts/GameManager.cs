@@ -232,36 +232,13 @@ public class GameManager : MonoBehaviour
                 // Only reuse an existing display if it belongs to the same prompt
                 if (existing.Entry.id == entry.id && existing.Entry.promt_id == entry.promt_id)
                 {
-                    // Re-use the existing display: update entry reference, sprite and position, and ensure it's active
+                    // Re-use the existing display: update entry reference/sprite and keep its world position.
                     existing.Entry = entry;
                     SpriteRenderer existingSr = existing.GetComponent<SpriteRenderer>();
                     if (existingSr != null)
                     {
                         existingSr.sprite = entry.sprite;
                     }
-
-                    // Recompute position similarly to spawning logic below
-                    Vector3 reusedPosition;
-                    if (currentPromptData != null && currentPromptData.IsOnGround)
-                    {
-                        if (Physics.Raycast(entry.position + Vector3.up * 1f, Vector3.down, out RaycastHit groundHit, 10f))
-                        {
-                            float yOffset = 0f;
-                            Renderer ren = existingSr != null ? (Renderer)existingSr : existing.GetComponent<Renderer>();
-                            if (ren != null) yOffset = ren.bounds.extents.y;
-                            reusedPosition = groundHit.point + Vector3.up * (yOffset + 0.5f);
-                        }
-                        else
-                        {
-                            reusedPosition = entry.position;
-                        }
-                    }
-                    else
-                    {
-                        reusedPosition = entry.position + new Vector3(0, UnityEngine.Random.Range(5f, 12f), 0);
-                    }
-
-                    existing.transform.position = reusedPosition;
                     existing.gameObject.SetActive(true);
 
                     if (entry.id > 0)
@@ -359,13 +336,8 @@ public class GameManager : MonoBehaviour
         // Ensure we have the latest entries from remote
         databaseManager.RefreshEntries();
 
-        // Try to spawn entries via public API first (may be filtered to current prompt)
-        Entry[] entries = databaseManager.GetAllEntries();
-        // If no results returned, try the raw test dataset (unfiltered)
-        if ((entries == null || entries.Length == 0) && databaseManager.testEntryDatabase != null && databaseManager.testEntryDatabase.entries != null)
-        {
-            entries = databaseManager.testEntryDatabase.entries;
-        }
+        // Use the raw cached dataset so all prompts can be shown at once.
+        Entry[] entries = databaseManager.GetAllEntriesRaw();
 
         if (entries == null) return;
 
@@ -697,7 +669,7 @@ public class GameManager : MonoBehaviour
             SkyboxBlender skyboxBlender = FindAnyObjectByType<SkyboxBlender>();
             playerData.CurrentGameplayState = GameplayState.Reviewing;
             playerData.CurrentGameState = GameState.Outro;
-            playerData.PromptIndex = GameManager.PromptDatas.Length - 1; // Set to last prompt which is the review outro
+           
             if (skyboxBlender != null) {
                 skyboxBlender.StartFade();
 
@@ -730,6 +702,52 @@ public class GameManager : MonoBehaviour
     private void OnRemoteEntryLoaded(Entry entry)
     {
         SpawnEntryDisplay(entry);
+    }
+    
+
+    public void SkipToOutro()
+    {
+        playerData.PromptIndex = promptDatas.Length - 1; // Set to last prompt which is the review outro
+        ToReviewOutro();
+        StartCoroutine(PreloadAllPromptEntriesCoroutine());
+        
+    }
+
+    private IEnumerator PreloadAllPromptEntriesCoroutine()
+    {
+        if (databaseManager == null)
+        {
+            databaseManager = FindAnyObjectByType<DatabaseManager>();
+        }
+
+        if (databaseManager == null || promptDatas == null || promptDatas.Length == 0)
+        {
+            ShowAllEntries();
+            yield break;
+        }
+
+        // Prevent the DatabaseManager from forwarding RemoteEntryLoaded events
+        // while we preload so new GameObjects aren't spawned/repositioned.
+        databaseManager.SuppressRemoteNotifications = true;
+
+        for (int i = 0; i < promptDatas.Length; i++)
+        {
+            PromptData promptData = promptDatas[i];
+            if (promptData == null || string.IsNullOrWhiteSpace(promptData.DatabasePath))
+            {
+                continue;
+            }
+
+            Debug.Log($"Preloading prompt {i} from path '{promptData.DatabasePath}'");
+            databaseManager.RefreshEntriesForPromptPath(promptData.DatabasePath);
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        // Stop suppressing after preload so subsequent remote entries behave normally.
+        databaseManager.SuppressRemoteNotifications = false;
+
+        // Ensure only the current prompt's displays are visible in the outro
+        ShowDrawingDisplaysForPrompt(CurrentPromptIndex);
     }
     
 

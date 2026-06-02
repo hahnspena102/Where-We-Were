@@ -10,6 +10,10 @@ public class DatabaseManager : MonoBehaviour
     public TestEntryDatabase testEntryDatabase;
     public DatabaseLinker databaseLinker;
 
+    // When true, incoming remote entries will be added to the local cache but
+    // DatabaseManager will not forward them via the RemoteEntryLoaded event.
+    public bool SuppressRemoteNotifications { get; set; } = false;
+
     private bool useLinkedDatabase;
     private GameManager gameManager;
 
@@ -137,6 +141,41 @@ public class DatabaseManager : MonoBehaviour
         return GetCurrentPromptEntries();
     }
 
+    // Return every cached entry regardless of prompt selection.
+    public Entry[] GetAllEntriesRaw()
+    {
+        if (testEntryDatabase == null)
+        {
+            return Array.Empty<Entry>();
+        }
+
+        return testEntryDatabase.entries ?? Array.Empty<Entry>();
+    }
+
+    public void RefreshEntriesForPromptPath(string promptPath)
+    {
+        if (string.IsNullOrWhiteSpace(promptPath))
+        {
+            Debug.LogWarning("RefreshEntriesForPromptPath called with an empty prompt path.");
+            return;
+        }
+
+        if (databaseLinker == null)
+        {
+            databaseLinker = FindAnyObjectByType<DatabaseLinker>();
+        }
+
+        if (databaseLinker == null)
+        {
+            Debug.LogWarning($"RefreshEntriesForPromptPath('{promptPath}') skipped because DatabaseLinker is missing.");
+            return;
+        }
+
+        databaseLinker.StopReadingEntriesFromDatabase();
+        databaseLinker.SetEntriesPath(promptPath);
+        databaseLinker.ReadEntriesFromDatabase();
+    }
+
     private bool IsLinkedDatabaseAvailable()
     {
         if (databaseLinker == null)
@@ -221,7 +260,10 @@ public class DatabaseManager : MonoBehaviour
 
         // Always add/replace in the local dataset. Let listeners decide whether to spawn.
         AddOrReplaceEntryInDataset(remoteEntry);
-        RemoteEntryLoaded?.Invoke(remoteEntry);
+        if (!SuppressRemoteNotifications)
+        {
+            RemoteEntryLoaded?.Invoke(remoteEntry);
+        }
     }
 
     // Request a refresh from the linked database. For local test dataset this is a no-op.

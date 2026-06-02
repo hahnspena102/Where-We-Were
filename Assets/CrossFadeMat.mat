@@ -33,11 +33,11 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CubemapA:
-        m_Texture: {fileID: 8900000, guid: 6c134522fd028814999a30231614e392, type: 3}
+        m_Texture: {fileID: 8900000, guid: 8d682ca62c65543de8c2482ff09c4bc2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CubemapB:
-        m_Texture: {fileID: 8900000, guid: 6c134522fd028814999a30231614e392, type: 3}
+        m_Texture: {fileID: 8900000, guid: 8d682ca62c65543de8c2482ff09c4bc2, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -114,7 +114,7 @@ Material:
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _Rotation: 26.05051
+    - _Rotation: 7.194449
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
