@@ -205,7 +205,7 @@ public class GameManager : MonoBehaviour
   
     }
 
-    private void SpawnEntryDisplay(Entry entry, bool ignorePromptFilter = false)
+    private void SpawnEntryDisplay(Entry entry, bool ignorePromptFilter = false, bool keepHidden = false)
     {
         if (entry == null)
         {
@@ -244,6 +244,11 @@ public class GameManager : MonoBehaviour
                     if (entry.id > 0)
                     {
                         displayedEntryIds.Add(entry.id);
+                    }
+
+                    if (keepHidden)
+                    {
+                        existing.gameObject.SetActive(false);
                     }
 
                     Debug.Log($"Reused existing display for entry {entry.id}");
@@ -305,6 +310,11 @@ public class GameManager : MonoBehaviour
         if (dd != null)
         {
             dd.Entry = entry;
+        }
+
+        if (keepHidden)
+        {
+            entryGO.SetActive(false);
         }
 
         if (entry.id > 0)
@@ -669,6 +679,7 @@ public class GameManager : MonoBehaviour
             SkyboxBlender skyboxBlender = FindAnyObjectByType<SkyboxBlender>();
             playerData.CurrentGameplayState = GameplayState.Reviewing;
             playerData.CurrentGameState = GameState.Outro;
+            SoundManager.instance.PlayMusic("sunlight");
            
             if (skyboxBlender != null) {
                 skyboxBlender.StartFade();
@@ -707,8 +718,9 @@ public class GameManager : MonoBehaviour
 
     public void SkipToOutro()
     {
-        playerData.PromptIndex = promptDatas.Length - 1; // Set to last prompt which is the review outro
+        playerData.PromptIndex = promptDatas.Length - 1;
         ToReviewOutro();
+        textDisplay.ClearText();
         StartCoroutine(PreloadAllPromptEntriesCoroutine());
         
     }
@@ -746,8 +758,14 @@ public class GameManager : MonoBehaviour
         // Stop suppressing after preload so subsequent remote entries behave normally.
         databaseManager.SuppressRemoteNotifications = false;
 
-        // Ensure only the current prompt's displays are visible in the outro
-        ShowDrawingDisplaysForPrompt(CurrentPromptIndex);
+        // Preload the full cached dataset as inactive objects so prompt buttons can reveal
+        // them later without any missing display objects from ID conflicts.
+        Entry[] entries = databaseManager.GetAllEntriesRaw();
+        foreach (Entry entry in entries)
+        {
+            if (entry == null) continue;
+            SpawnEntryDisplay(entry, true, true);
+        }
     }
     
 

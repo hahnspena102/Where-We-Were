@@ -360,4 +360,21 @@ public class TextDisplay : MonoBehaviour
 
         enterFadeCoroutine = null;
     }
+
+    public void ClearText()
+    {
+        if (currentLineCoroutine != null)
+        {
+            StopCoroutine(currentLineCoroutine);
+            currentLineCoroutine = null;
+        }
+        textMeshPro.text = "";
+        textMeshPro.maxVisibleCharacters = 0;
+        Color c = textMeshPro.color;
+        c.a = 0f;
+        textMeshPro.color = c;
+
+        if (enterToContinueText != null)
+            StartEnterFade(false);
+    }
 }

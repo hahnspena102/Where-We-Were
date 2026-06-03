@@ -337,7 +337,7 @@ public class DatabaseManager : MonoBehaviour
         Entry[] existingEntries = testEntryDatabase.entries ?? Array.Empty<Entry>();
         for (int i = 0; i < existingEntries.Length; i++)
         {
-            if (existingEntries[i] != null && existingEntries[i].id == newEntry.id)
+            if (EntriesMatch(existingEntries[i], newEntry))
             {
                 existingEntries[i] = newEntry;
                 testEntryDatabase.entries = existingEntries;
@@ -346,6 +346,16 @@ public class DatabaseManager : MonoBehaviour
         }
 
         AddEntryToTestDataset(newEntry);
+    }
+
+    private bool EntriesMatch(Entry existingEntry, Entry newEntry)
+    {
+        if (existingEntry == null || newEntry == null)
+        {
+            return false;
+        }
+
+        return existingEntry.id == newEntry.id && existingEntry.promt_id == newEntry.promt_id;
     }
 
     private Entry[] GetCurrentPromptEntries()
